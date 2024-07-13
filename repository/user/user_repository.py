@@ -1,26 +1,31 @@
-from sqlalchemy.orm import Session
+import asyncio
+from typing import List, Optional
+
+from pydantic import UUID4
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import db_helper
 from database.models.user.user import User
 from schemas.user.user_schema import UserInput, UserOutput
-from typing import List, Optional
-from pydantic import UUID4
 
 
 class UserRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def create(self, data: UserInput) -> UserOutput:
+    async def create(self, data: UserInput) -> UserOutput:
         user = User(
             first_name=data.first_name,
             last_name=data.last_name,
-            hashed_password=b'',  # You should hash the password before saving it
+            email=data.email,
+            hashed_password=b"password",  # MAKE HASHING
             access=data.access,
-            is_active=data.is_active,
-            email=data.email
+            is_active=data.is_active
         )
         self.session.add(user)
-        self.session.commit()
-        self.session.refresh(user)
+        await self.session.commit()
+        await self.session.refresh(user)
         return UserOutput(
             id=user.id,
             first_name=user.first_name,
@@ -31,36 +36,33 @@ class UserRepository:
             posts=[]
         )
 
-    def get_all(self) -> List[Optional[UserOutput]]:
-        users = self.session.query(User).all()
+    async def get_all(self) -> List[Optional[UserOutput]]:
+        stmt = select(User).order_by(User.last_name)
+        result = await self.session.execute(stmt)
+        users = result.scalars().all()
         return [UserOutput(**user.__dict__) for user in users]
 
-    def get_user(self, user_id: UUID4) -> UserOutput:
-        user = self.session.query(User).filter_by(id=user_id).first()
+    async def get_user(self, _id: UUID4) -> UserOutput:
+        user = await self.session.get(User, _id)
         return UserOutput(**user.__dict__)
 
-    def get_by_id(self, user_id: UUID4) -> Optional[User]:
-        return self.session.query(User).filter_by(id=user_id).first()
+    async def get_by_id(self, _id: UUID4) -> Optional[User]:
+        return await self.session.get(User, _id)
 
-    def user_exists_by_id(self, user_id: UUID4) -> bool:
-        user = self.session.query(User).filter_by(id=user_id).first()
+    async def user_exists_by_id(self, _id: UUID4) -> bool:
+        user = await self.session.get(User, _id)
         return user is not None
 
-    def user_exists_by_email(self, email: str) -> bool:
-        user = self.session.query(User).filter_by(email=email).first()
-        return user is not None
-
-    def update(self, user: User, data: UserInput) -> UserOutput:
-        user.first_name = data.first_name
-        user.last_name = data.last_name
-        user.access = data.access
-        user.is_active = data.is_active
-        user.email = data.email
-        self.session.commit()
-        self.session.refresh(user)
+    async def update(self, user: User, data: UserInput) -> UserOutput:
+        for key, value in data.model_dump(exclude_none=True).items():
+            setattr(user, key, value)
+        await self.session.commit()
+        await self.session.refresh(user)
         return UserOutput(**user.__dict__)
 
-    def delete(self, user: User) -> bool:
-        self.session.delete(user)
-        self.session.commit()
+    async def delete(self, user: User) -> bool:
+        await self.session.delete(user)
+        await self.session.commit()
         return True
+
+

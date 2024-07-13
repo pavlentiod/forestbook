@@ -1,15 +1,20 @@
-from sqlalchemy.orm import Session
+import asyncio
+from typing import List, Optional
+
+from pydantic import UUID4
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database import db_helper
 from database.models.post.post import Post
 from schemas.post.post_schema import PostInput, PostOutput
-from typing import List, Optional
-from uuid import UUID
 
 
 class PostRepository:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
 
-    def create(self, data: PostInput) -> PostOutput:
+    async def create(self, data: PostInput) -> PostOutput:
         post = Post(
             title=data.title,
             place=data.place,
@@ -21,11 +26,13 @@ class PostRepository:
             image_path=data.image_path,
             split=data.split,
             index=data.index,
-            body=data.body
+            body=data.body,
+            user_id=data.user_id,
+            event_id=data.event_id,
         )
         self.session.add(post)
-        self.session.commit()
-        self.session.refresh(post)
+        await self.session.commit()
+        await self.session.refresh(post)
         return PostOutput(
             id=post.id,
             title=post.title,
@@ -40,94 +47,63 @@ class PostRepository:
             index=post.index,
             body=post.body,
             created_date=post.created_date,
-            user=post.user,
-            event=post.event,
-            gps=post.gps
+            user=None,  # This will be populated with user data in service layer
+            event=None,  # This will be populated with event data in service layer
+            gps=None  # This will be populated with GPSPostOutput in service layer
         )
 
-    def get_all(self) -> List[Optional[PostOutput]]:
-        posts = self.session.query(Post).all()
-        return [PostOutput(
-            id=post.id,
-            title=post.title,
-            place=post.place,
-            median_p_bk=post.median_p_bk,
-            result=post.result,
-            backlog=post.backlog,
-            points_number=post.points_number,
-            split_firsts=post.split_firsts,
-            image_path=post.image_path,
-            split=post.split,
-            index=post.index,
-            body=post.body,
-            created_date=post.created_date,
-            user=post.user,
-            event=post.event,
-            gps=post.gps
-        ) for post in posts]
+    async def get_all(self) -> List[Optional[PostOutput]]:
+        stmt = select(Post).order_by(Post.created_date)
+        result = await self.session.execute(stmt)
+        posts = result.scalars().all()
+        return [PostOutput(**post.__dict__) for post in posts]
 
-    def get_post(self, post_id: UUID) -> PostOutput:
-        post = self.session.query(Post).filter_by(id=post_id).first()
-        return PostOutput(
-            id=post.id,
-            title=post.title,
-            place=post.place,
-            median_p_bk=post.median_p_bk,
-            result=post.result,
-            backlog=post.backlog,
-            points_number=post.points_number,
-            split_firsts=post.split_firsts,
-            image_path=post.image_path,
-            split=post.split,
-            index=post.index,
-            body=post.body,
-            created_date=post.created_date,
-            user=post.user,
-            event=post.event,
-            gps=post.gps
-        )
+    async def get_post(self, _id: UUID4) -> PostOutput:
+        post = await self.session.get(Post, _id)
+        return PostOutput(**post.__dict__)
 
-    def get_by_id(self, post_id: UUID) -> Optional[Post]:
-        return self.session.query(Post).filter_by(id=post_id).first()
+    async def get_by_id(self, _id: UUID4) -> Optional[Post]:
+        return await self.session.get(Post, _id)
 
-    def post_exists_by_id(self, post_id: UUID) -> bool:
-        post = self.session.query(Post).filter_by(id=post_id).first()
+    async def post_exists_by_id(self, _id: UUID4) -> bool:
+        post = await self.session.get(Post, _id)
         return post is not None
 
-    def update(self, post: Post, data: PostInput) -> PostOutput:
-        post.title = data.title
-        post.place = data.place
-        post.median_p_bk = data.median_p_bk
-        post.result = data.result
-        post.backlog = data.backlog
-        post.points_number = data.points_number
-        post.split_firsts = data.split_firsts
-        post.image_path = data.image_path
-        post.split = data.split
-        post.index = data.index
-        post.body = data.body
-        self.session.commit()
-        self.session.refresh(post)
-        return PostOutput(
-            id=post.id,
-            title=post.title,
-            place=post.place,
-            median_p_bk=post.median_p_bk,
-            result=post.result,
-            backlog=post.backlog,
-            points_number=post.points_number,
-            split_firsts=post.split_firsts,
-            image_path=post.image_path,
-            split=post.split,
-            index=post.index,
-            body=post.body,
-            created_date=post.created_date,
-            user=post.user,
-            event=post.event,
-            gps=post.gps
-        )
+    async def update(self, post: Post, data: PostInput) -> PostOutput:
+        for key, value in data.model_dump(exclude_none=True).items():
+            setattr(post, key, value)
+        await self.session.commit()
+        await self.session.refresh(post)
+        return PostOutput(**post.__dict__)
 
-    def delete(self, post: Post) -> bool:
-        self.session.delete(post)
-        self.session.commit()
+    async def delete(self, post: Post) -> bool:
+        await self.session.delete(post)
+        await self.session.commit()
         return True
+
+
+async def main():
+    async with db_helper.session_factory() as session:
+        ev = PostRepository(session)
+        inp = PostInput(
+            title="Sample Post",
+            place=1,
+            median_p_bk=5.0,
+            result=120,
+            backlog=43,
+            points_number=10,
+            split_firsts=2,
+            image_path="/path/to/image.jpg",
+            split={"point":"time"},
+            index="Ivanov Pavel",
+            body={"bpdy":"text"},
+            event_id="e894c953-d404-4311-aea8-bc7098393157",
+            user_id="2494f7df-d104-4848-a19e-7cae30960ced"
+        )
+        await ev.create(inp)
+        # event = await ev.get_by_id("1ae075c1-aff0-4c38-acf5-0b75e25c4bc7")
+        # await ev.update(event, inp2)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
