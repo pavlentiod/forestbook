@@ -1,33 +1,42 @@
-# conftest.py
+from typing import AsyncGenerator
 
 import pytest
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncTransaction, create_async_engine, AsyncSession
 
-from database import db_helper
-from repository.event.event_repository import EventRepository
-from schemas.event.event_file_schema import EventFileOutput
-from schemas.event.event_schema import EventInput
-from schemas.post.post_schema import PostOutput
+from config import settings
+
+engine = create_async_engine(settings.db.url)
+pytestmark = pytest.mark.anyio
 
 
-@pytest.fixture(scope="module")
-def db_session():
-    return db_helper.get_scoped_session()
+@pytest.fixture(scope="session")
+def anyio_backend():
+    return "asyncio"
+
+
+@pytest.fixture(scope="session")
+async def connection(anyio_backend) -> AsyncGenerator[AsyncConnection, None]:
+    async with engine.connect() as connection:
+        yield connection
 
 
 @pytest.fixture
-def event_repository(db_session):
-    event = EventRepository(db_session)
-    return event
+async def transaction(
+        connection: AsyncConnection,
+) -> AsyncGenerator[AsyncTransaction, None]:
+    async with connection.begin() as transaction:
+        yield transaction
 
 
 @pytest.fixture
-def sample_event_data():
-    return EventInput(
-        title="Sample Event",
-        count=10,
-        status=True,
-        split_link="https://example.com",
-        date="2024-07-12T12:00:00"
+async def session(
+        connection: AsyncConnection, transaction: AsyncTransaction
+) -> AsyncGenerator[AsyncSession, None]:
+    async_session = AsyncSession(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
     )
 
+    yield async_session
 
+    await transaction.rollback()
