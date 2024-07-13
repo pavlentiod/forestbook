@@ -16,7 +16,7 @@ class Event(Base):
     count: Mapped[int] = mapped_column(Integer, nullable=False)
     split_link: Mapped[str] = mapped_column(String(200), nullable=True, unique=False)
     date: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now())
+        DateTime(timezone=False), server_default=func.now())
     status: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     event_files: Mapped["Event_file"] = relationship(back_populates="event", cascade="all, delete")
