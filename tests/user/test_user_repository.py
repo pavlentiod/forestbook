@@ -1,20 +1,28 @@
 import random
 import uuid
 
+import bcrypt
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from repository.user.user_repository import UserRepository
 from schemas.user.user_schema import UserInput
 
+def hash_password(
+        password: str,
+) -> bytes:
+    salt = bcrypt.gensalt()
+    pwd_bytes: bytes = password.encode()
+    return bcrypt.hashpw(pwd_bytes, salt)
+
 
 @pytest.fixture
 def sample_user_data() -> UserInput:
     return UserInput(
-        first_name="John",
+        first_name="John2",
         last_name="Doe",
         email="john.doe@example.com",
-        password="securepassword",
+        password="securepassword222",
         access=1,
         is_active=True
     )
@@ -106,3 +114,18 @@ async def test_get_all_users(session: AsyncSession, sample_user_data):
     users = await repository.get_all()
 
     assert len(users) > 0
+
+
+async def test_user_exists_by_email(session: AsyncSession, sample_user_data: dict):
+    repository = UserRepository(session=session)
+    sample_user_data.email = str(random.randint(0, 1000)) + sample_user_data.email
+    created_user = await repository.create(sample_user_data)
+    exists = await repository.user_exists_by_email(sample_user_data.email)
+    assert exists is True
+
+    # Check with a non-existing email
+    non_existent_email = "nondhhexistent@example.com"
+    exists = await repository.user_exists_by_email(non_existent_email)
+
+    assert exists is False
+

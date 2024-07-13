@@ -1,12 +1,11 @@
-import asyncio
 from typing import List, Optional
 
 from pydantic import UUID4
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database import db_helper
 from database.models.user.user import User
+from repository.user.utils import hash_password
 from schemas.user.user_schema import UserInput, UserOutput
 
 
@@ -19,7 +18,7 @@ class UserRepository:
             first_name=data.first_name,
             last_name=data.last_name,
             email=data.email,
-            hashed_password=b"password",  # MAKE HASHING
+            hashed_password=hash_password(data.password),
             access=data.access,
             is_active=data.is_active
         )
@@ -51,6 +50,10 @@ class UserRepository:
 
     async def user_exists_by_id(self, _id: UUID4) -> bool:
         user = await self.session.get(User, _id)
+        return user is not None
+
+    async def user_exists_by_email(self, email: str) -> bool:
+        user = await self.session.scalar(select(User).where(User.email == email))
         return user is not None
 
     async def update(self, user: User, data: UserInput) -> UserOutput:
