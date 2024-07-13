@@ -47,8 +47,9 @@ class PostRepository:
             index=post.index,
             body=post.body,
             created_date=post.created_date,
-            user=None,  # This will be populated with user data in service layer
-            event=None,  # This will be populated with event data in service layer
+            # user=None,
+            user_id=post.user_id,
+            event_id=post.event_id,
             gps=None  # This will be populated with GPSPostOutput in service layer
         )
 

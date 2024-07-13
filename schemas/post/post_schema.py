@@ -3,10 +3,10 @@ from typing import Optional, List, Dict, TYPE_CHECKING
 from datetime import datetime
 from uuid import UUID
 
-# if TYPE_CHECKING:
-# from schemas.event.event_schema import EventOutput
+
 from schemas.post.gps_post_schema import GPSPostOutput
-# from schemas.user.user_schema import UserOutput
+
+
 
 
 class PostInput(BaseModel):
@@ -39,6 +39,7 @@ class PostOutput(BaseModel):
     index: Optional[str]
     body: Dict
     created_date: datetime
-    # user: UserOutput = None
-    # event: EventOutput = None
+    event_id: UUID = None
+    user_id: UUID = None
     gps: Optional["GPSPostOutput"] = None
+

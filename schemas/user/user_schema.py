@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import List, TYPE_CHECKING, Optional
 from uuid import UUID
 
+# if TYPE_CHECKING:
 from schemas.post.post_schema import PostOutput
 
 
