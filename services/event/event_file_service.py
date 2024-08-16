@@ -16,9 +16,14 @@ class EventFileService:
     def __init__(self, session: AsyncSession):
         self.repository = EventFileRepository(session)
 
-    async def create(self, data: EventFileInput) -> EventFileOutput:
-        # Business logic validation can be added here if necessary
-        return await self.repository.create(data)
+    async def create(self, event_id: UUID4) -> EventFileOutput:
+        # TODO add event exist validation
+        event_files_input = EventFileInput(event_id=event_id)
+        return await self.repository.create(event_files_input)
+
+
+    # async def upload_files_to_storage(self, event_files: Results) -> bool:
+
 
     async def get_all(self) -> List[EventFileOutput]:
         return await self.repository.get_all()
