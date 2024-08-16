@@ -35,6 +35,12 @@ class EventFileService:
             raise HTTPException(status_code=404, detail="Event file not found")
         return event_file
 
+    async def get_event_file_by_event_id(self, _id: UUID4) -> EventFileOutput:
+        event_file = await self.repository.get_by_event_id(_id)
+        if not event_file:
+            raise HTTPException(status_code=404, detail="Event file not found")
+        return event_file
+
     async def update(self, _id: UUID4, data: EventFileInput) -> EventFileOutput:
         event_file = await self.repository.get_by_id(_id)
         if not event_file:
