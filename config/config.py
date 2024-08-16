@@ -29,20 +29,20 @@ class AuthJWT(BaseModel):
     refresh_token_expire_days: int = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS"))
 
 
-class Settings(BaseSettings):
-    api_v1_prefix: str = os.getenv("API_V1_PREFIX")
-
-    db: DbSettings = DbSettings()
-
-    auth_jwt: AuthJWT = AuthJWT()
-
-
 class AWS_Settings(BaseSettings):
-    # AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID")
-    # AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_DEFAULT_REGION: str = os.getenv("AWS_DEFAULT_REGION")
     AWS_BUCKET_NAME: str = os.getenv("AWS_BUCKET_NAME")
+    AWS_SPLITS_PATH: str = os.getenv("SPLITS_PATH")
+    AWS_ROUTES_PATH: str = os.getenv("ROUTES_PATH")
+    AWS_RESULTS_PATH: str = os.getenv("RESULTS_PATH")
+
+class Settings(BaseSettings):
+    api_v1_prefix: str = os.getenv("API_V1_PREFIX")
+    db: DbSettings = DbSettings()
+    auth_jwt: AuthJWT = AuthJWT()
+    aws: AWS_Settings = AWS_Settings()
+
+
 
 
 settings = Settings()
-aws_settings = AWS_Settings()
