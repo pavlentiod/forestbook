@@ -2,7 +2,7 @@
 import random
 
 import pandas as pd
-from pandas import Timedelta
+from pandas import Timedelta, DataFrame
 
 from src.services.parser.src.utils import fill_GD, dispersions, null, bs, rl, course
 from bs4 import BeautifulSoup as BS, BeautifulSoup
@@ -12,19 +12,19 @@ import re
 global log
 
 
-def soup_main_info(soup: BS):
+def soup_main_info(soup: BS) -> (list, ResultSet):
     h2: list = [i.get_text(' ').upper() for i in soup.find_all('h2')]
     tables: ResultSet = soup.find_all('table')
     return h2, tables
 
 
-def check_void_groups(soup: BS):  # Count the number of people in each group
+def check_void_groups(soup: BS) -> dict:  # Count the number of people in each group
     h2, tables = soup_main_info(soup)
     number_of_sportsmens: dict = {h2[i]: len(bs(tables[i]).find_all('tr')) - 1 for i in rl(h2)}
     return number_of_sportsmens
 
 
-def BS_group_data(group: str, soup: BS):  # Returns the soup with the table (can be sent to name and split handlers)
+def BS_group_data(group: str, soup: BS) -> (BeautifulSoup, ResultSet, ResultSet):  # Returns the soup with the table (can be sent to name and split handlers)
     h2, tables = soup_main_info(soup)
     group_soup: BS = bs(tables[h2.index(group)])
     tr = group_soup.find_all('tr')
@@ -32,7 +32,7 @@ def BS_group_data(group: str, soup: BS):  # Returns the soup with the table (can
     return group_soup, tr, th
 
 
-def group_names(group: str, tr: ResultSet):  # Remove group name truncation .split(' ')[0]
+def group_names(group: str, tr: ResultSet) -> list:  # Remove group name truncation .split(' ')[0]
     tr_pt: BS = bs(tr[1])
     td_pr: ResultSet = tr_pt.find_all('td', class_='cr')
     all_td: ResultSet = bs(''.join(str(tr))).find_all('td', class_='cr')
@@ -61,7 +61,7 @@ def group_names(group: str, tr: ResultSet):  # Remove group name truncation .spl
 """ Check protocols for the presence of control points """
 
 
-def group_results(tr: ResultSet, names: list):  # Returns a dictionary name - result
+def group_results(tr: ResultSet, names: list) -> dict:  # Returns a dictionary name - result
     f = lambda x: re.search('\d+:\d+:\d+', x)
     s = [f(str(i)).group() if f(str(i)) is not None else '100:00:00' for i in tr[1:]]
     all_res = [Timedelta(hours=int(i.split(':')[0]), minutes=int(i.split(':')[1]),
@@ -70,7 +70,7 @@ def group_results(tr: ResultSet, names: list):  # Returns a dictionary name - re
 
 
 def points(tr: ResultSet, th: ResultSet, tm_index: int,
-           names: list):  # Check for the presence of seeding, return points for each person
+           names: list) -> dict:  # Check for the presence of seeding, return points for each person
     r = rl(tr)[:-1]
     if len(th[tm_index].get_text(' ')) > 3:
         cp = lambda s: int(re.search('\(\d{1,3}\)', s).group()[1:-1])
@@ -88,7 +88,7 @@ def points(tr: ResultSet, th: ResultSet, tm_index: int,
 """ WORK WITH INDIVIDUAL """
 
 
-def times(tr: ResultSet, tm_index: int):
+def times(tr: ResultSet, tm_index: int) -> list:
     times = []
     for i in rl(tr):
         td: ResultSet = bs(tr[i]).find_all('td')
@@ -99,7 +99,7 @@ def times(tr: ResultSet, tm_index: int):
     return times
 
 
-def splits(times: list, names: list):
+def splits(times: list, names: list) -> dict:
     spl = []
     for l in times:
         f = lambda x, i: x[i] - x[i - 1] if x[i] > x[i - 1] else null
@@ -109,7 +109,7 @@ def splits(times: list, names: list):
     return ret
 
 
-def routes_and_splits_dict(routes: list, splits: list):
+def routes_and_splits_dict(routes: list, splits: list) -> dict:
     if len(routes) == len(splits):
         d: dict = dict(zip(routes, splits))
         return d
@@ -120,7 +120,7 @@ def routes_and_splits_dict(routes: list, splits: list):
 """ GROUP PROCESSING """
 
 
-def results_and_group_general_data(group: str, soup):
+def results_and_group_general_data(group: str, soup) -> (BeautifulSoup, ResultSet, ResultSet, list, list, dict):
     group_soup, tr, th = BS_group_data(group.upper(), soup)
     tm_index = [th.index(i) for i in th if "#" in i.get_text()]
     names = group_names(group.upper(), tr)
@@ -128,28 +128,27 @@ def results_and_group_general_data(group: str, soup):
     return group_soup, tr, th, tm_index, names, results
 
 
-def times_and_points(tr, th, tm_index, names, results):
+def times_and_points(tr: ResultSet, th: ResultSet, tm_index: list, names: list, results: dict) -> (list, dict):
     try:
         tm_index = tm_index[0]
     except IndexError:
-        disps = {'RES': names}
-        return pd.DataFrame(results, index=['RES']).T, disps
+        raise IndexError
     try:
         points_l = points(tr, th, tm_index, names)
         times_l = times(tr[1:], tm_index)
     except AttributeError:
-        return pd.DataFrame(results, index=['RES']).T
+        raise AttributeError
     return times_l, points_l
 
 
-def SFR_parsing_data(group: str, soup: BS):
+def SFR_parsing_data(group: str, soup: BS) -> (list, dict, dict, dict):
     group_soup, tr, th, tm_index, names, results = results_and_group_general_data(group.upper(), soup)
     times_l, points_l = times_and_points(tr, th, tm_index, names, results)
     splits_l = splits(times_l, names)
     return names, points_l, splits_l, results
 
 
-def group_frame(group: str, soup: BS):
+def group_frame(group: str, soup: BS) -> (DataFrame, dict):
     names, points_l, splits_l, results = SFR_parsing_data(group, soup)
     GD = fill_GD(names, points_l, splits_l, results)
     disps = dispersions(points_l)
@@ -157,10 +156,8 @@ def group_frame(group: str, soup: BS):
     return df, disps
 
 
-def SFR_parsing(sp):
+def SFR_parsing(sp: BeautifulSoup) -> (DataFrame, dict):
     h2, tb = soup_main_info(sp)
-    global log
-    log = 'error'
     try:
         check = check_void_groups(sp)
     except IndexError:
@@ -173,11 +170,9 @@ def SFR_parsing(sp):
         try:
             group_df, disps = group_frame(group, sp)
         except:
-            return pd.DataFrame(), {}, log
+            return pd.DataFrame(), {}
         df = pd.concat([df, group_df], join='outer', axis=0)
         routes.setdefault(group, disps)
-    log = 'correct'
     df = df.replace([null], pd.NaT)
-    # print(log, df.shape, len(routes))
     return df, routes
 
