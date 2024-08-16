@@ -4,9 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
-from repository.user.user_repository import UserRepository
+from repositories.user.user_repository import UserRepository
 from schemas.user.user_schema import UserInput, UserOutput
-from repository.user.utils import hash_password
+from repositories.user.utils import hash_password
 
 
 class UserService:
