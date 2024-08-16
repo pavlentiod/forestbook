@@ -3,7 +3,6 @@ from typing import Optional, List
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
 from schemas.event.event_file_schema import EventFileOutput
 
 
@@ -23,4 +22,11 @@ class EventOutput(BaseModel):
     date: datetime
     status: bool
     event_files: Optional[EventFileOutput] = None
+
+
+class EventEndpoint(BaseModel):
+    title: Optional[str] = Field(max_length=100, default='')
+    split_link: Optional[str] = Field(max_length=200)
+    date: Optional[datetime]
+
 
