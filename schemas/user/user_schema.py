@@ -25,3 +25,8 @@ class UserOutput(BaseModel):
     posts: Optional[List[PostOutput]] = []
 
 
+class UserEndpoint(BaseModel):
+    first_name: str = Field(min_length=1, max_length=20)
+    last_name: str = Field(min_length=1, max_length=20)
+    email: EmailStr
+    password: str = Field(min_length=6)
