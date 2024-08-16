@@ -45,6 +45,12 @@ class EventFileRepository:
     async def get_by_id(self, _id: UUID4) -> Optional[Event_file]:
         return await self.session.get(Event_file, _id)
 
+    async def get_by_event_id(self, _id: UUID4) -> Optional[EventFileOutput]:
+        event_file= await self.session.scalar(select(Event_file).where(Event_file.event_id == _id))
+        if event_file:
+            return EventFileOutput(**event_file.__dict__)
+        return None
+
     async def event_file_exists_by_id(self, _id: UUID4) -> bool:
         event_file = await self.session.get(Event_file, _id)
         return event_file is not None
