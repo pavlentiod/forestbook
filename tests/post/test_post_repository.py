@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from repository.post.post_repository import PostRepository
+from repositories.post.post_repository import PostRepository
 from schemas.post.post_schema import PostInput
 
 @pytest.fixture

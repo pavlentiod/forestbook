@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repository.event.event_repository import EventRepository
+from repositories.event.event_repository import EventRepository
 from schemas.event.event_schema import EventInput
 
 @pytest.fixture

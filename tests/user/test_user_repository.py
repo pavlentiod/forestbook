@@ -5,7 +5,7 @@ import bcrypt
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repository.user.user_repository import UserRepository
+from repositories.user.user_repository import UserRepository
 from schemas.user.user_schema import UserInput
 
 def hash_password(
