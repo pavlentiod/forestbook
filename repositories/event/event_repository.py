@@ -47,6 +47,13 @@ class EventRepository:
     async def get_by_id(self, _id: UUID4) -> Optional[Event]:
         return await self.session.get(Event, _id)
 
+    async def get_by_source_link(self, link: str) -> Optional[EventOutput]:
+        if "#" in link:
+            link = link[:link.index("#")]
+        event = await self.session.scalar(select(Event).where(Event.split_link == link))
+        if event:
+            return EventOutput(**event.__dict__)
+
     async def event_exists_by_id(self, _id: UUID4) -> bool:
         event = await self.session.get(Event, _id)
         return event is not None
