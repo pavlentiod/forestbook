@@ -1,12 +1,10 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, TYPE_CHECKING
 from datetime import datetime
+from typing import Optional, Dict
 from uuid import UUID
 
+from pydantic import BaseModel, Field
 
 from schemas.post.gps_post_schema import GPSPostOutput
-
-
 
 
 class PostInput(BaseModel):
@@ -42,4 +40,10 @@ class PostOutput(BaseModel):
     event_id: UUID = None
     user_id: UUID = None
     gps: Optional["GPSPostOutput"] = None
+
+
+class PostEndpoint(BaseModel):
+    title: str = Field(min_length=1, max_length=100)
+    user_id: UUID
+    event_id: UUID
 
