@@ -4,8 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from repository.event.event_file_repository import EventFileRepository
+from repositories.event.event_file_repository import EventFileRepository
 from schemas.event.event_file_schema import EventFileInput, EventFileOutput
+from schemas.results.results_schema import Results
 
 
 class EventFileService:
