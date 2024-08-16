@@ -3,7 +3,7 @@ from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-from repository.post.post_repository import PostRepository
+from repositories.post.post_repository import PostRepository
 from schemas.post.post_schema import PostInput, PostOutput
 
 
