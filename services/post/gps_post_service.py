@@ -3,7 +3,7 @@ from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
-from repository.post.gps_post_repository import GPSPostRepository
+from repositories.post.gps_post_repository import GPSPostRepository
 from schemas.post.gps_post_schema import GPSPostInput, GPSPostOutput
 
 
