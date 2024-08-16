@@ -1,9 +1,8 @@
 import pytest
-from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.post.gps_post_repository import GPSPostRepository
-from schemas.post.gps_post_schema import GPSPostInput
+from src.repositories.post.gps_post_repository import GPSPostRepository
+from src.schemas.post.gps_post_schema import GPSPostInput
 
 @pytest.fixture
 def sample_gps_post_data() -> GPSPostInput:

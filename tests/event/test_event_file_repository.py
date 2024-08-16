@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.event.event_file_repository import EventFileRepository
-from schemas.event.event_file_schema import EventFileInput
+from src.repositories.event.event_file_repository import EventFileRepository
+from src.schemas.event.event_file_schema import EventFileInput
 
 
 @pytest.fixture

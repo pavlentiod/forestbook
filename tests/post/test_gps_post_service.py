@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
-from schemas.post.gps_post_schema import GPSPostInput
+from src.schemas.post.gps_post_schema import GPSPostInput
 from service.post.gps_post_service import GPSPostService
 
 

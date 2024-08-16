@@ -1,10 +1,8 @@
-import random
-
 import pytest
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from schemas.user.user_schema import UserInput
+from src.schemas.user.user_schema import UserInput
 from service.user.user_service import UserService
 
 

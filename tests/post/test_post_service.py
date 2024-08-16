@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
-from schemas.post.post_schema import PostInput
+from src.schemas.post.post_schema import PostInput
 from service.post.post_service import PostService
 
 

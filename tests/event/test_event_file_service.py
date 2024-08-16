@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
-from schemas.event.event_file_schema import EventFileInput
+from src.schemas.event.event_file_schema import EventFileInput
 from service.event.event_file_service import EventFileService
 
 

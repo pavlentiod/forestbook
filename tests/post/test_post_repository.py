@@ -1,9 +1,7 @@
-from uuid import uuid4
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from repositories.post.post_repository import PostRepository
-from schemas.post.post_schema import PostInput
+from src.repositories.post.post_repository import PostRepository
+from src.schemas.post.post_schema import PostInput
 
 @pytest.fixture
 def sample_post_data() -> PostInput:

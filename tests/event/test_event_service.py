@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 
-from schemas.event.event_schema import EventInput
+from src.schemas.event.event_schema import EventInput
 from service.event.event_service import EventService
 
 

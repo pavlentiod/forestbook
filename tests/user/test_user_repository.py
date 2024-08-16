@@ -1,12 +1,11 @@
 import random
-import uuid
 
 import bcrypt
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from repositories.user.user_repository import UserRepository
-from schemas.user.user_schema import UserInput
+from src.repositories.user.user_repository import UserRepository
+from src.schemas.user.user_schema import UserInput
 
 def hash_password(
         password: str,
