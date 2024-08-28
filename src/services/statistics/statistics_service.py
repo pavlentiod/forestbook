@@ -49,6 +49,16 @@ class StatisticsService:
         """
         pass
 
+
+    def find_runner_on_event(self, name: str) -> str:
+        """
+        Find some runner on event by first and last name. Can be useful for confirm data before post creating.
+
+        name: runners first and last name from ForestBook account
+        return: index in event frame
+        """
+        pass
+
     def _get_runner_by_name(self, name) -> StatRunner:
         pass
 
