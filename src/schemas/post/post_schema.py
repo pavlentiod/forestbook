@@ -8,7 +8,7 @@ from src.schemas.post.gps_post_schema import GPSPostOutput
 
 
 class PostInput(BaseModel):
-    title: str = Field(min_length=1, max_length=100)
+    title: str = Field(min_length=1, max_length=100, default='Post title')
     place: Optional[int]
     median_p_bk: int
     result: Optional[int]
@@ -18,7 +18,7 @@ class PostInput(BaseModel):
     image_path: Optional[str] = Field(max_length=40)
     split: Dict
     index: Optional[str] = Field(max_length=50)
-    body: Dict
+    body: Dict = {}
     user_id: UUID
     event_id: UUID
 
