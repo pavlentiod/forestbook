@@ -4,6 +4,7 @@ from abc import abstractmethod, ABC
 from functools import cache
 from io import BytesIO
 from urllib.parse import urlencode
+from uuid import UUID
 
 import boto3
 from fastapi import UploadFile
@@ -110,7 +111,7 @@ class StorageService(CloudUpload):
             print(err)
             return b''
 
-    async def upload_results(self, results: Results, filenames: EventFileOutput):
-        await self.upload_to_json(data=results.splits, filename=filenames.splits_path)
-        await self.upload_to_json(data=results.routes, filename=filenames.routes_path)
-        await self.upload_to_json(data=results.results, filename=filenames.results_path)
+    async def upload_event_data(self, results: EventData, filename: UUID):
+        aws_paths = settings.aws
+        await self.upload_to_json(data=results.splits, filename=aws_paths.AWS_SPLITS_PATH + filename)
+        await self.upload_to_json(data=results.routes, filename=aws_paths.AWS_ROUTES_PATH + filename)
