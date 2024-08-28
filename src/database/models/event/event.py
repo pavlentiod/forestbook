@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.base import Base
 
 if TYPE_CHECKING:
-    from .event_file import Event_file
     from ..post.post import Post
 
 
@@ -19,5 +18,5 @@ class Event(Base):
         DateTime(timezone=False), server_default=func.now())
     status: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    event_files: Mapped["Event_file"] = relationship(back_populates="event", cascade="all, delete")
+    # event_files: Mapped["Event_file"] = relationship(back_populates="event", cascade="all, delete")
     posts: Mapped[list["Post"]] = relationship(back_populates="event")
