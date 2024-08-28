@@ -24,6 +24,7 @@ class PostOutput(BaseModel):
 
 class PostRequest(BaseModel):
     title: str = Field(min_length=1, max_length=100)
+    body: Dict = {}
     user_id: UUID
     event_id: UUID
 
