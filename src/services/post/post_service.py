@@ -5,6 +5,9 @@ from fastapi import HTTPException
 
 from src.repositories.post.post_repository import PostRepository
 from src.schemas.post.post_schema import PostInput, PostOutput, PostRequest
+from src.services.event.event_service import EventService
+from src.services.statistics.statistics_service import StatisticsService
+from src.services.user.user_service import UserService
 
 
 class PostService:
@@ -14,9 +17,16 @@ class PostService:
 
     def __init__(self, session: AsyncSession):
         self.repository = PostRepository(session)
+        self.event_service = EventService(session)
+        self.user_service = UserService(session)
 
     async def create(self, data: PostRequest) -> PostOutput:
-        # Business logic validation can be added here if necessary
+        """
+
+        param data: Request from api for creating post for user on certain event
+        return: PostOutput model with post general data
+        """
+
         return await self.repository.create(data)
 
     async def get_all(self) -> List[PostOutput]:
