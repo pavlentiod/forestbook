@@ -1,32 +1,63 @@
+from pandas import DataFrame, Series
+
 from src.schemas.event.event_schema import EventOutput
-from src.schemas.post.gps_post_schema import GPSPostInput
-from src.schemas.post.post_schema import PostInput
-from src.schemas.results.results_schema import Results
-from src.schemas.split.split_schema import SplitInput
-from src.schemas.user.user_schema import UserOutput
-from src.services.results.src.split import SPL
+from src.services.results.src.res_event import ResEvent
+from src.services.results.src.res_group import ResGroup
+from src.services.results.src.res_runner import ResRunner
 from src.services.storage.storage_service import StorageService
 
 
 class ResultsService:
+    """
+    Service for calculate event, group and runner metrics on certain event(one day of event).
+    """
 
-    def __init__(self, event: EventOutput):
-        self.event = event
-        self.storage = StorageService()
+    def __init__(self, event: EventOutput, group: str = None, runner: str = None):
+        self.splits: DataFrame = self._get_splits(event)
+        self.routes: dict = self._get_routes(event)
+        self.event: ResEvent = ResEvent(legs_df=self.splits, dispersions=self.routes)
+        if group:
+            self.group: ResGroup = self._get_group_by_name(group)
+        if runner:
+            self.group: ResGroup = self._get_group_by_runner(runner)
+            self.runner: ResRunner = self._get_runner_by_name(runner)
+        if group and runner:
+            self.group: ResGroup = self._get_group_by_name(group)
+            self.runner = self._get_runner_by_name_and_group(name=runner, group=group)
 
-    async def calculate_post(self, split: SplitInput) -> PostInput:  # returns PostInput
-        results = await self.get_results()
-        # print(results)
-        return SPL(split_input=split, results_data=results)
+    async def _get_splits(self, event) -> DataFrame:
+        """
+        Get runners splits on event legs like dataframe
+        :return: Ordinary event dataframe with timedelta data
+        """
+        storage = StorageService()
+        splits = await storage.download_json(event.event_files.splits_path)
+        return DataFrame(splits, dtype="timedelta64[ns]")
 
-    def calculate_gps_post(self, user: UserOutput) -> GPSPostInput:
+    async def _get_routes(self, event) -> dict:
+        """
+        Get routes from S3 for runners on event
+        :return: dict with all dispersions
+        """
+        storage = StorageService()
+        return await storage.download_json(event.event_files.routes_path)
+
+    async def _get_results(self, event) -> dict:
+        """
+        Get results from S3 and return like a dict
+        :return:
+        """
         pass
 
-    async def get_results(self) -> Results:
-        return Results(
-            splits=await self.storage.download_json(self.event.event_files.splits_path),
-            routes=await self.storage.download_json(self.event.event_files.routes_path),
-            results=await self.storage.download_json(self.event.event_files.results_path)
-        )
+    def _get_runner_by_name(self, name) -> ResRunner:
+        pass
 
+    def _get_group_by_runner(self, name) -> ResRunner:
+        pass
+
+    def _get_runner_by_name_and_group(self, name: str, group: str) -> ResRunner:
+        pass
+
+    def _get_group_by_name(self, group_name) -> ResGroup:
+        pass
 
