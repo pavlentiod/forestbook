@@ -17,15 +17,6 @@ class PostRepository:
     async def create(self, data: PostInput) -> PostOutput:
         post = Post(
             title=data.title,
-            place=data.place,
-            median_p_bk=data.median_p_bk,
-            result=data.result,
-            backlog=data.backlog,
-            points_number=data.points_number,
-            split_firsts=data.split_firsts,
-            image_path=data.image_path,
-            split=data.split,
-            index=data.index,
             body=data.body,
             user_id=data.user_id,
             event_id=data.event_id,
@@ -36,21 +27,10 @@ class PostRepository:
         return PostOutput(
             id=post.id,
             title=post.title,
-            place=post.place,
-            median_p_bk=post.median_p_bk,
-            result=post.result,
-            backlog=post.backlog,
-            points_number=post.points_number,
-            split_firsts=post.split_firsts,
-            image_path=post.image_path,
-            split=post.split,
-            index=post.index,
             body=post.body,
             created_date=post.created_date,
-            # user=None,
             user_id=post.user_id,
             event_id=post.event_id,
-            gps=None  # This will be populated with GPSPostOutput in service layer
         )
 
     async def get_all(self) -> List[Optional[PostOutput]]:
@@ -81,30 +61,3 @@ class PostRepository:
         await self.session.delete(post)
         await self.session.commit()
         return True
-
-
-async def main():
-    async with db_helper.session_factory() as session:
-        ev = PostRepository(session)
-        inp = PostInput(
-            title="Sample Post",
-            place=1,
-            median_p_bk=5.0,
-            result=120,
-            backlog=43,
-            points_number=10,
-            split_firsts=2,
-            image_path="/path/to/image.jpg",
-            split={"point":"time"},
-            index="Ivanov Pavel",
-            body={"bpdy":"text"},
-            event_id="e894c953-d404-4311-aea8-bc7098393157",
-            user_id="2494f7df-d104-4848-a19e-7cae30960ced"
-        )
-        await ev.create(inp)
-        # event = await ev.get_by_id("1ae075c1-aff0-4c38-acf5-0b75e25c4bc7")
-        # await ev.update(event, inp2)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

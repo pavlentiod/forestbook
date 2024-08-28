@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
 from src.repositories.post.post_repository import PostRepository
-from src.schemas.post.post_schema import PostInput, PostOutput
+from src.schemas.post.post_schema import PostInput, PostOutput, PostRequest
 
 
 class PostService:
@@ -15,7 +15,7 @@ class PostService:
     def __init__(self, session: AsyncSession):
         self.repository = PostRepository(session)
 
-    async def create(self, data: PostInput) -> PostOutput:
+    async def create(self, data: PostRequest) -> PostOutput:
         # Business logic validation can be added here if necessary
         return await self.repository.create(data)
 
