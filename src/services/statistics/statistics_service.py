@@ -1,9 +1,9 @@
 from pandas import DataFrame
 
 from src.schemas.event.event_schema import EventOutput
-from src.services.statistics.src.stat_event import ResEvent
-from src.services.statistics.src.stat_group import ResGroup
-from src.services.statistics.src.stat_runner import ResRunner
+from src.services.statistics.src.stat_event import StatEvent
+from src.services.statistics.src.stat_group import StatGroup
+from src.services.statistics.src.stat_runner import StatRunner
 from src.services.storage.storage_service import StorageService
 
 
@@ -15,14 +15,14 @@ class StatisticsService:
     def __init__(self, event: EventOutput, group: str = None, runner: str = None):
         self.splits: DataFrame = self._get_splits(event)
         self.routes: dict = self._get_routes(event)
-        self.event: ResEvent = ResEvent(legs_df=self.splits, dispersions=self.routes)
+        self.event: StatEvent = StatEvent(legs_df=self.splits, dispersions=self.routes)
         if group:
-            self.group: ResGroup = self._get_group_by_name(group)
+            self.group: StatGroup = self._get_group_by_name(group)
         if runner:
-            self.group: ResGroup = self._get_group_by_runner(runner)
-            self.runner: ResRunner = self._get_runner_by_name(runner)
+            self.group: StatGroup = self._get_group_by_runner(runner)
+            self.runner: StatRunner = self._get_runner_by_name(runner)
         if group and runner:
-            self.group: ResGroup = self._get_group_by_name(group)
+            self.group: StatGroup = self._get_group_by_name(group)
             self.runner = self._get_runner_by_name_and_group(name=runner, group=group)
 
     async def _get_splits(self, event) -> DataFrame:
@@ -49,15 +49,15 @@ class StatisticsService:
         """
         pass
 
-    def _get_runner_by_name(self, name) -> ResRunner:
+    def _get_runner_by_name(self, name) -> StatRunner:
         pass
 
-    def _get_group_by_runner(self, name) -> ResRunner:
+    def _get_group_by_runner(self, name):
         pass
 
-    def _get_runner_by_name_and_group(self, name: str, group: str) -> ResRunner:
+    def _get_runner_by_name_and_group(self, name: str, group: str) -> StatRunner:
         pass
 
-    def _get_group_by_name(self, group_name) -> ResGroup:
+    def _get_group_by_name(self, group_name) -> StatGroup:
         pass
 
