@@ -18,5 +18,4 @@ class Event(Base):
         DateTime(timezone=False), server_default=func.now())
     status: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
-    # event_files: Mapped["Event_file"] = relationship(back_populates="event", cascade="all, delete")
     posts: Mapped[list["Post"]] = relationship(back_populates="event")

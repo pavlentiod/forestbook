@@ -2,10 +2,10 @@ from typing import Optional
 
 from pandas import DataFrame, Series
 
-from src.services.results.src.res_event import ResEvent
+from src.services.statistics.src.stat_event import StatEvent
 
 
-class ResGroup:
+class StatGroup:
     """
     Group class with group parameters and methods for calculate statistics
      on group legs(not course, because group can have several dispersions).
@@ -13,7 +13,7 @@ class ResGroup:
     Group init by group_name and event
     """
 
-    def __init__(self, group_name: str, event: ResEvent):
+    def __init__(self, group_name: str, event: StatEvent):
         self.name = group_name.upper()
         self.df = event.get_group_frame(self.name)
         self.dispersions = event.get_group_dispersions(self.name)

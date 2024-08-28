@@ -1,13 +1,13 @@
-from pandas import DataFrame, Series
+from pandas import DataFrame
 
 from src.schemas.event.event_schema import EventOutput
-from src.services.results.src.res_event import ResEvent
-from src.services.results.src.res_group import ResGroup
-from src.services.results.src.res_runner import ResRunner
+from src.services.statistics.src.stat_event import ResEvent
+from src.services.statistics.src.stat_group import ResGroup
+from src.services.statistics.src.stat_runner import ResRunner
 from src.services.storage.storage_service import StorageService
 
 
-class ResultsService:
+class StatisticsService:
     """
     Service for calculate event, group and runner metrics on certain event(one day of event).
     """

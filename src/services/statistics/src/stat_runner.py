@@ -1,15 +1,15 @@
 import pandas as pd
 from pandas import Series, Timedelta
 
-from src.services.results.src.res_group import ResGroup
+from src.services.statistics.src.stat_group import StatGroup
 
 
-class ResRunner:
+class StatRunner:
     """
     Class for one runner on certain event. Can calculate personal statistics on event
     """
 
-    def __init__(self, name: str, group: ResGroup):
+    def __init__(self, name: str, group: StatGroup):
         self.name = f"{name.upper()}^{group.name}"
         self.group = group
         self.course = group.get_runner_course(runner=self.name)

@@ -2,7 +2,7 @@
 from pandas import DataFrame
 
 
-class ResEvent:
+class StatEvent:
     """
     Event class with general event data and methods for init Group class
     """
