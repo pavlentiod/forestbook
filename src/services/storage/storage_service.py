@@ -9,8 +9,7 @@ import boto3
 from fastapi import UploadFile
 
 from src.config import settings
-from src.schemas.event.event_file_schema import EventFileOutput
-from src.schemas.results.results_schema import Results
+from src.schemas.event.event_schema import EventData
 from src.schemas.storage.storage_schema import FileOutput
 
 
