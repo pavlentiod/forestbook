@@ -1,35 +1,29 @@
 import datetime
-from typing import Union
 
 from bs4 import BeautifulSoup
 from fastapi import UploadFile
 
-from src.schemas.event.event_schema import EventInput
-from src.schemas.results.results_schema import Results
-from src.services.parser.parser_utils import web_parse, file_parse, parse_event, calculate_results
-
+from src.schemas.event.event_schema import EventInput, EventData
+from src.services.parser.src.parser import web_parse, file_parse, parse_event
 
 
 class ParserService:
 
-    def parse(self, source_link: str = None, source_file: UploadFile = None) -> (EventInput, Results):
+    def parse(self, source_link: str = None, source_file: UploadFile = None) -> (EventInput, EventData):
         page = self.get_source(source_link,source_file)
         try:
             event_df, routes = parse_event(page)
-            results = calculate_results(event_df.copy())
         except Exception as e:
-            print(e)
-            return None
+            raise ValueError(f"Cant parse {source_link if source_link else source_file.filename}")
         event = EventInput(
             count=event_df.shape[0],
             status=True,
             split_link = source_link,
             date=datetime.datetime.now()
         )
-        results = Results(
+        results = EventData(
             splits=event_df.to_dict(orient='split'),
             routes=routes,
-            results=results
         )
         return event, results
 
