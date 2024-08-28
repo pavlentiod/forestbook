@@ -69,7 +69,6 @@ class StorageService(CloudUpload):
             file = FileOutput(url=url, message=f'{file.filename} uploaded successfully', filename=file.filename, content_type=file.content_type, size=file.size)
             return file
         except Exception as err:
-            # print(err)
             return FileOutput(status=False, error=str(err), message='File upload was unsuccessful')
 
 
@@ -83,7 +82,6 @@ class StorageService(CloudUpload):
             file = FileOutput(url=url, message=f'{file.filename} uploaded successfully', filename=file.filename, content_type=file.content_type, size=file.size)
             return file
         except Exception as err:
-            print(err)
             return FileOutput(status=False, error=str(err), message='File upload was unsuccessful')
 
 
@@ -97,7 +95,6 @@ class StorageService(CloudUpload):
             response = await asyncio.to_thread(self.client.get_object, Bucket=bucket, Key=key)
             return await asyncio.to_thread(response['Body'].read)
         except Exception as err:
-            print(err)
             return b''
 
 
@@ -108,7 +105,6 @@ class StorageService(CloudUpload):
             body = await asyncio.to_thread(response['Body'].read)
             return json.loads(body)
         except Exception as err:
-            print(err)
             return b''
 
     async def upload_event_data(self, results: EventData, filename: UUID):
