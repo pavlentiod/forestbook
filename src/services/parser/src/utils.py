@@ -6,8 +6,6 @@ from bs4 import BeautifulSoup as BS
 from pandas import Timedelta
 from pandas._libs import NaTType
 
-global log
-
 
 def bs(s: BS):
     soup: BS = BS(str(s), 'html.parser')
