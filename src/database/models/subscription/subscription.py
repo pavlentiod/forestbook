@@ -1,7 +1,9 @@
-import sqlalchemy
-from sqlalchemy import INTEGER, DateTime
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID
 
+import sqlalchemy
+from sqlalchemy import INTEGER, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from uuid import UUID as UUID_2
 from src.database import Base
 from src.database.models.user.user import User
 
@@ -12,4 +14,5 @@ class Subscription(Base):
     end_at: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
 
     # Relations
-    user: Mapped[list["User"]] = relationship("User", back_populates="subscription")
+    user_id: Mapped[UUID_2] = mapped_column(ForeignKey('users.id'), nullable=False)
+    user: Mapped["User"] = relationship("User", back_populates="subscription")
