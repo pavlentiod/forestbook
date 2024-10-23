@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 
 from src.repositories.user.user_repository import UserRepository
-from src.schemas.user.user_schema import UserInput, UserOutput
+from src.schemas.user.user_schema import UserInput, UserOutput, UserFilter
 
 
 class UserService:
@@ -24,8 +24,8 @@ class UserService:
         except IntegrityError:
             raise HTTPException(status_code=400, detail="Error creating user")
 
-    async def get_all(self) -> List[UserOutput]:
-        return await self.repository.get_all()
+    async def get_all(self, user_filter: UserFilter) -> List[UserOutput]:
+        return await self.repository.get_all(user_filter)
 
     async def get_user(self, _id: UUID4) -> UserOutput:
         user = await self.repository.get_by_id(_id)

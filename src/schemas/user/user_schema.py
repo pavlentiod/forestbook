@@ -30,3 +30,12 @@ class UserEndpoint(BaseModel):
     last_name: str = Field(min_length=1, max_length=20)
     email: EmailStr
     password: str = Field(min_length=6)
+
+
+class UserFilter(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    is_active: Optional[bool] = None
+    updated_from: Optional[datetime] = None  # Filter users updated after this date
+    updated_to: Optional[datetime] = None

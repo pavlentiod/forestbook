@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models.user.user import User
 from src.repositories.user.utils import hash_password
-from src.schemas.user.user_schema import UserInput, UserOutput
+from src.schemas.user.user_schema import UserInput, UserOutput, UserFilter
 
 
 class UserRepository:
@@ -48,16 +48,46 @@ class UserRepository:
             is_active=user.is_active
         )
 
-    async def get_all(self) -> List[Optional[UserOutput]]:
+    async def get_all(self, user_filter: UserFilter) -> List[Optional[UserOutput]]:
         """
-        Retrieves all users from the database, ordered by last name.
+        Retrieve all users with optional filtering based on the UserFilter model.
 
-        :return: A list of UserOutput objects.
+        Args:
+            user_filter (UserFilter): The filter criteria for retrieving users.
+
+        Returns:
+            List[UserOutput]: A list of users that match the filtering criteria.
         """
-        stmt = select(User).order_by(User.last_name)
+        # Prepare the base query
+        stmt = select(User).order_by(User.id)
+
+        # Create a list to hold the filter conditions
+        filters = []
+
+        # Dynamically add filters based on the user_filter values
+        if user_filter.first_name:
+            filters.append(User.first_name.ilike(f"%{user_filter.first_name}%"))  # Case-insensitive search
+        if user_filter.last_name:
+            filters.append(User.last_name.ilike(f"%{user_filter.last_name}%"))   # Case-insensitive search
+        if user_filter.email:
+            filters.append(User.email.ilike(f"%{user_filter.email}%"))           # Case-insensitive search
+        if user_filter.is_active is not None:
+            filters.append(User.is_active == user_filter.is_active)
+        if user_filter.updated_from:
+            filters.append(User.updated_at >= user_filter.updated_from)
+        if user_filter.updated_to:
+            filters.append(User.updated_at <= user_filter.updated_to)
+
+        # Apply all filters at once (SQLAlchemy automatically uses AND between conditions)
+        if filters:
+            stmt = stmt.where(*filters)
+
+        # Execute the query and fetch results
         result = await self.session.execute(stmt)
-        users = result.scalars().all()
-        return [UserOutput(**user.__dict__) for user in users]
+        entities = result.scalars().all()
+
+        # Return the results as a list of UserOutput objects
+        return [UserOutput(**user.__dict__) for user in entities]
 
     async def get_user(self, _id: UUID4) -> UserOutput:
         """
