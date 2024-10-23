@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 import sqlalchemy
-import uuid
 from sqlalchemy import String, DateTime, UUID
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from uuid import UUID as UUID_2
