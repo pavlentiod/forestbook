@@ -9,8 +9,6 @@ from src.database.base import Base
 
 if TYPE_CHECKING:
     from ..post.post import Post
-    from ..article.article import Article
-    from ..subscription.subscription import Subscription
     from ..team_member.team_member import TeamMember
 
 
@@ -26,7 +24,3 @@ class User(Base):
     # Relations
     posts: Mapped[list["Post"]] = relationship(back_populates="user", cascade="all, delete")
     team_members: Mapped[list["TeamMember"]] = relationship("TeamMember", back_populates="user", cascade="all, delete")
-    subscription: Mapped["Subscription"] = relationship("Subscription", back_populates="user",
-                                                              cascade="all, delete")
-    articles: Mapped[list["Article"]] = relationship("Article", back_populates="author",
-                                                     cascade="all, delete")
