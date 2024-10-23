@@ -9,8 +9,7 @@ from src.database.models.team.team import Team
 from src.database.models.user.user import User
 
 
-class TeamMember(Base):
-    __tablename__ = "team_members"
+class Teammate(Base):
 
     user_id: Mapped[UUID_2] = mapped_column(ForeignKey('users.id'), nullable=False)
     team_id: Mapped[UUID_2] = mapped_column(ForeignKey('teams.id'), nullable=False)
