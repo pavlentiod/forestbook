@@ -9,7 +9,7 @@ from src.database.base import Base
 
 if TYPE_CHECKING:
     from ..post.post import Post
-    from ..team_member.team_member import TeamMember
+    from ..teammate.teammate import Teammate
 
 
 class User(Base):
@@ -23,4 +23,4 @@ class User(Base):
 
     # Relations
     posts: Mapped[list["Post"]] = relationship(back_populates="user", cascade="all, delete")
-    team_members: Mapped[list["TeamMember"]] = relationship("TeamMember", back_populates="user", cascade="all, delete")
+    # team_members: Mapped[list["Teammate"]] = relationship("Teammate", back_populates="user", cascade="all, delete")
