@@ -4,16 +4,16 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import List, Optional
 from uuid import UUID
 
-# if TYPE_CHECKING:
-from src.schemas.post.post_schema import PostOutput
 
 
 class UserInput(BaseModel):
     first_name: str = Field(min_length=1, max_length=20)
     last_name: str = Field(min_length=1, max_length=20)
     email: EmailStr
-    password: str = Field(min_length=6)
+    hashed_password: bytes = Field()
     is_active: bool = Field(default=True)
+    access: str = Field(default="1")
+
 
 
 class UserOutput(BaseModel):
@@ -23,6 +23,7 @@ class UserOutput(BaseModel):
     email: str
     is_active: bool
     updated_at: datetime
+    access: str
 
 
 class UserEndpoint(BaseModel):
@@ -39,3 +40,12 @@ class UserFilter(BaseModel):
     is_active: Optional[bool] = None
     updated_from: Optional[datetime] = None  # Filter users updated after this date
     updated_to: Optional[datetime] = None
+
+
+class UserUpdate(BaseModel):
+    first_name: str = None
+    last_name: str = None
+    email: EmailStr = None
+    hashed_password: bytes = None
+    is_active: bool = None
+    access: str = None

@@ -8,3 +8,4 @@ def hash_password(
     pwd_bytes: bytes = password.encode()
     return bcrypt.hashpw(pwd_bytes, salt)
 
+
