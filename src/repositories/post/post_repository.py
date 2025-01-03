@@ -28,25 +28,11 @@ class PostRepository:
         :param data: The input data to create the post
         :return: The created post as PostOutput
         """
-        post = Post(
-            title=data.title,
-            body=data.body,
-            user_id=data.user_id,
-            event_id=data.event_id,
-            track_id=data.track_id
-        )
+        post = Post(**data.model_dump())
         self.session.add(post)
         await self.session.commit()
         await self.session.refresh(post)
-        return PostOutput(
-            id=post.id,
-            title=post.title,
-            body=post.body,
-            user_id=post.user_id,
-            event_id=post.event_id,
-            track_id=post.track_id,
-            created_at=post.created_at
-        )
+        return PostOutput(**post.__dict__)
 
     async def get_all(self) -> List[Optional[PostOutput]]:
         """
@@ -68,15 +54,7 @@ class PostRepository:
         """
         post = await self.session.get(Post, _id)
         if post:
-            return PostOutput(
-                id=post.id,
-                title=post.title,
-                body=post.body,
-                user_id=post.user_id,
-                event_id=post.event_id,
-                track_id=post.track_id,
-                created_at=post.created_at
-            )
+            return PostOutput(**post.__dict__)
         return None
 
     async def update(self, post: Post, data: PostEndpoint) -> PostOutput:
@@ -91,15 +69,7 @@ class PostRepository:
             setattr(post, key, value)
         await self.session.commit()
         await self.session.refresh(post)
-        return PostOutput(
-            id=post.id,
-            title=post.title,
-            body=post.body,
-            user_id=post.user_id,
-            event_id=post.event_id,
-            track_id=post.track_id,
-            created_at=post.created_at
-        )
+        return PostOutput(**post.__dict__)
 
     async def delete(self, post: Post) -> bool:
         """
