@@ -18,8 +18,8 @@ class Post(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     # User relation
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    user: Mapped["User"] = relationship(back_populates="posts")
+    # user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    # user: Mapped["User"] = relationship(back_populates="posts")
 
     # ForestLab relations
     event_id: Mapped[UUID] = mapped_column(UUID, nullable=False)
