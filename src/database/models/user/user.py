@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, List
 
 import sqlalchemy
-from sqlalchemy import String, Boolean, DateTime
+from sqlalchemy import String, Boolean, DateTime, Integer
 from sqlalchemy.dialects.postgresql import BYTEA
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,7 @@ class User(Base):
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), default=sqlalchemy.func.now(),
                                             onupdate=sqlalchemy.func.now(), server_default=sqlalchemy.func.now())
     email: Mapped[str] = mapped_column(String(40), unique=True, server_default='')
+    access: Mapped[str] = mapped_column(String(10), server_default="1")
 
     # Relations
     posts: Mapped[List["Post"]] = relationship(back_populates="runner", cascade="all, delete")
