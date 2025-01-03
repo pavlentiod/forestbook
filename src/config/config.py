@@ -22,8 +22,8 @@ class DbSettings(BaseModel):
 
 
 class AuthJWT(BaseModel):
-    private_key_path: Path = BASE_DIR / os.getenv("JWT_PRIVATE_KEY_PATH")
-    public_key_path: Path = BASE_DIR / os.getenv("JWT_PUBLIC_KEY_PATH")
+    private_key_path: Path = BASE_DIR.parent / os.getenv("JWT_PRIVATE_KEY_PATH")
+    public_key_path: Path = BASE_DIR.parent / os.getenv("JWT_PUBLIC_KEY_PATH")
     algorithm: str = os.getenv("JWT_ALGORITHM")
     access_token_expire_minutes: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES"))
     refresh_token_expire_days: int = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRE_DAYS"))
