@@ -6,9 +6,10 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.base import Base
-if TYPE_CHECKING:
-    from ..user.user import User
 
+
+if TYPE_CHECKING:
+    from src.database.models.user.user import User
 
 class Post(Base):
     title: Mapped[str] = mapped_column(String(100), unique=False, nullable=False)
@@ -18,8 +19,8 @@ class Post(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), onupdate=func.now())
 
     # User relation
-    # user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    # user: Mapped["User"] = relationship(back_populates="posts")
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    runner: Mapped["User"] = relationship(back_populates="posts")
 
     # ForestLab relations
     event_id: Mapped[UUID] = mapped_column(UUID, nullable=False)

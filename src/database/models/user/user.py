@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 import sqlalchemy
 from sqlalchemy import String, Boolean, DateTime
@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database.base import Base
 
 if TYPE_CHECKING:
-    from ..post.post import Post
+    from src.database.models.post.post import Post
 
 
 class User(Base):
@@ -21,4 +21,4 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(40), unique=True, server_default='')
 
     # Relations
-    # posts: Mapped[list["Post"]] = relationship(back_populates="user", cascade="all, delete")
+    posts: Mapped[List["Post"]] = relationship(back_populates="runner", cascade="all, delete")
