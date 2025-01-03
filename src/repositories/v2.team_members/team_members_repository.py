@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.models.team_member.team_member import TeamMember
+from src.database.models.teammate.teammate import TeamMember
 from src.schemas.team_member.team_member_schema import TeamMemberOutput, TeamMemberInput, TeamMemberEndpoint
 
 
