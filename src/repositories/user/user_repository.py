@@ -5,7 +5,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models.user.user import User
-from src.repositories.user.utils import hash_password
 from src.schemas.user.user_schema import UserInput, UserOutput, UserFilter
 
 
@@ -29,24 +28,11 @@ class UserRepository:
         :param data: The input data to create a user.
         :return: The created user as UserOutput.
         """
-        user = User(
-            first_name=data.first_name,
-            last_name=data.last_name,
-            email=data.email,
-            hashed_password=hash_password(data.password),
-            access=data.access,
-            is_active=data.is_active
-        )
+        user = User(**data.model_dump())
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
-        return UserOutput(
-            id=user.id,
-            first_name=user.first_name,
-            last_name=user.last_name,
-            email=user.email,
-            is_active=user.is_active
-        )
+        return UserOutput(**user.__dict__)
 
     async def get_all(self, user_filter: UserFilter) -> List[Optional[UserOutput]]:
         """
@@ -68,9 +54,9 @@ class UserRepository:
         if user_filter.first_name:
             filters.append(User.first_name.ilike(f"%{user_filter.first_name}%"))  # Case-insensitive search
         if user_filter.last_name:
-            filters.append(User.last_name.ilike(f"%{user_filter.last_name}%"))   # Case-insensitive search
+            filters.append(User.last_name.ilike(f"%{user_filter.last_name}%"))  # Case-insensitive search
         if user_filter.email:
-            filters.append(User.email.ilike(f"%{user_filter.email}%"))           # Case-insensitive search
+            filters.append(User.email.ilike(f"%{user_filter.email}%"))  # Case-insensitive search
         if user_filter.is_active is not None:
             filters.append(User.is_active == user_filter.is_active)
         if user_filter.updated_from:
@@ -127,6 +113,15 @@ class UserRepository:
         """
         user = await self.session.scalar(select(User).where(User.email == email))
         return user is not None
+
+    async def get_by_email(self, email: str):
+        """
+        Get user by email
+        :param email: email string
+        :return: UserOutput object
+        """
+        return await self.session.scalar(select(User).where(User.email == email))
+        # return UserOutput(**user.__dict__)
 
     async def update(self, user: User, data: UserInput) -> UserOutput:
         """
