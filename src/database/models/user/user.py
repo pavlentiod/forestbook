@@ -19,7 +19,6 @@ class User(Base):
     updated_at: Mapped[str] = mapped_column(DateTime(timezone=True), default=sqlalchemy.func.now(),
                                             onupdate=sqlalchemy.func.now(), server_default=sqlalchemy.func.now())
     email: Mapped[str] = mapped_column(String(40), unique=True, server_default='')
-    access: Mapped[str] = mapped_column(String(10), server_default="1")
 
     # Relations
     posts: Mapped[List["Post"]] = relationship(back_populates="runner", cascade="all, delete")
