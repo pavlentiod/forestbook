@@ -1,17 +1,14 @@
 import asyncio
-import json
 from abc import abstractmethod, ABC
 from functools import cache
-from io import BytesIO
-from urllib.parse import urlencode
-from uuid import UUID
+from typing import List
 
 import boto3
 from fastapi import UploadFile
 
 from src.config import settings
-from src.schemas.event.event_schema import EventData
 from src.schemas.storage.storage_schema import FileOutput
+from src.services.redis_storage.redis_service import RedisStorage
 
 
 class CloudUpload(ABC):
@@ -30,8 +27,9 @@ class CloudUpload(ABC):
         """
         self.config = config or {}
 
-    async def __call__(self, file: UploadFile | None = None, files: list[UploadFile] | None = None) -> FileOutput | list[
-        FileOutput]:
+    async def __call__(self, file: UploadFile | None = None, files: list[UploadFile] | None = None) -> FileOutput | \
+                                                                                                       list[
+                                                                                                           FileOutput]:
         try:
             if file:
                 return await self.upload(file=file)
@@ -53,61 +51,91 @@ class CloudUpload(ABC):
 
 
 class StorageService(CloudUpload):
+    def __init__(self, config: dict | None = None):
+        super().__init__(config)
+        self.redis_client = RedisStorage()
+        self.redis_keys = settings.redis.storage
+
     @property
     @cache
     def client(self):
         region_name = settings.aws.AWS_DEFAULT_REGION
         return boto3.client('s3', endpoint_url='https://storage.yandexcloud.net', region_name=region_name)
 
-
     async def upload(self, *, file: UploadFile) -> FileOutput:
         try:
             extra_args = self.config.get('extra_args', {})
             bucket = settings.aws.AWS_BUCKET_NAME
+            redis_key = self.redis_keys.key_by_filepath(file.filename)
+            # Upload file to storage
             await asyncio.to_thread(self.client.upload_fileobj, file.file, bucket, file.filename, ExtraArgs=extra_args)
-            url = f"https://storage.yandexcloud.net/{bucket}/{urlencode(file.filename.encode('utf8'))}"
-            file = FileOutput(url=url, message=f'{file.filename} uploaded successfully', filename=file.filename, content_type=file.content_type, size=file.size)
-            return file
+
+            # Clear existing cache and store new data
+            self.redis_client.delete(redis_key)
+            file_info = FileOutput(filename=file.filename, content_type=file.content_type, size=file.size)
+            self.redis_client.set(redis_key, file)
+
+            return file_info
         except Exception as err:
             return FileOutput(status=False, error=str(err), message='File upload was unsuccessful')
-
-
-    async def upload_to_json(self, *, data: dict, filename: str) -> FileOutput:
-        file = UploadFile(file=BytesIO(json.dumps(data, default=str).encode('UTF-8')), filename=filename)
-        try:
-            extra_args = self.config.get('extra_args', {})
-            bucket = settings.aws.AWS_BUCKET_NAME
-            await asyncio.to_thread(self.client.upload_fileobj, file.file, bucket, file.filename, ExtraArgs=extra_args)
-            url = f"https://storage.yandexcloud.net/{bucket}/{urlencode(file.filename.encode('utf8'))}"
-            file = FileOutput(url=url, message=f'{file.filename} uploaded successfully', filename=file.filename, content_type=file.content_type, size=file.size)
-            return file
-        except Exception as err:
-            return FileOutput(status=False, error=str(err), message='File upload was unsuccessful')
-
-
-    async def multi_upload(self, *, files: list[UploadFile]):
-        tasks = [asyncio.create_task(self.upload(file=file)) for file in files]
-        return await asyncio.gather(*tasks)
 
     async def download(self, key: str) -> bytes:
+        redis_key = self.redis_keys.key_by_filepath(key)
+        # Check cache before downloading
+        if (cached_data := self.redis_client.get(redis_key)) is not None:
+            return cached_data
+
         try:
             bucket = settings.aws.AWS_BUCKET_NAME
             response = await asyncio.to_thread(self.client.get_object, Bucket=bucket, Key=key)
-            return await asyncio.to_thread(response['Body'].read)
-        except Exception as err:
+            content = await asyncio.to_thread(response['Body'].read)
+
+            # Cache the content
+            self.redis_client.set(redis_key, content)
+            return content
+        except Exception:
             return b''
 
-
-    async def download_json(self, key: str) -> bytes:
+    async def delete(self, key: str) -> bool:
+        redis_key = self.redis_keys.key_by_filepath(key)
         try:
             bucket = settings.aws.AWS_BUCKET_NAME
-            response = await asyncio.to_thread(self.client.get_object, Bucket=bucket, Key=key)
-            body = await asyncio.to_thread(response['Body'].read)
-            return json.loads(body)
-        except Exception as err:
-            return b''
 
-    async def upload_event_data(self, results: EventData, filename: UUID):
-        aws_paths = settings.aws
-        await self.upload_to_json(data=results.splits, filename=aws_paths.AWS_SPLITS_PATH + filename)
-        await self.upload_to_json(data=results.routes, filename=aws_paths.AWS_ROUTES_PATH + filename)
+            # Delete from storage
+            await asyncio.to_thread(self.client.delete_object, Bucket=bucket, Key=key)
+
+            # Remove cache entry
+            self.redis_client.delete(redis_key)
+            return True
+        except Exception:
+            return False
+
+    async def update(self, key: str, file: UploadFile) -> FileOutput:
+
+        # Delete and upload new file
+        await self.delete(key)
+        return await self.upload(file=file)
+
+    async def list_files(self, folder: str) -> List[str]:
+        redis_key = self.redis_keys.key_by_filepath(folder)
+
+        # Check cache before listing
+        if (cached_files := self.redis_client.get(redis_key)) is not None:
+            return cached_files
+
+        try:
+            bucket = settings.aws.AWS_BUCKET_NAME
+            response = await asyncio.to_thread(self.client.list_objects_v2, Bucket=bucket, Prefix=folder)
+            files = response.get('Contents', [])
+            file_keys = [file['Key'] for file in files if 'Key' in file]
+
+            # Cache the file list
+            self.redis_client.set(redis_key, file_keys)
+            return file_keys
+        except Exception as err:
+            raise RuntimeError(f"Failed to list files in folder {folder}: {str(err)}")
+
+    async def multi_upload(self, *, files: list[UploadFile]) -> list[FileOutput]:
+        for file in files:
+            await self.upload(file=file)
+        return True
