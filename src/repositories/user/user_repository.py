@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models.user.user import User
-from src.schemas.user.user_schema import UserInput, UserOutput, UserFilter
+from src.schemas.user.user_schema import UserInput, UserInDB, UserFilter, UserInDB, UserUpdate
+from src.services.user.utils import hash_password
 
 
 class UserRepository:
@@ -21,20 +22,20 @@ class UserRepository:
         """
         self.session = session
 
-    async def create(self, data: UserInput) -> UserOutput:
+    async def create(self, data: UserInput) -> UserInDB:
         """
         Creates a new user in the database.
 
         :param data: The input data to create a user.
-        :return: The created user as UserOutput.
+        :return: The created user as UserInDB.
         """
         user = User(**data.model_dump())
         self.session.add(user)
         await self.session.commit()
         await self.session.refresh(user)
-        return UserOutput(**user.__dict__)
+        return UserInDB(**user.__dict__)
 
-    async def get_all(self, user_filter: UserFilter) -> List[Optional[UserOutput]]:
+    async def get_all(self, user_filter: UserFilter) -> List[Optional[UserInDB]]:
         """
         Retrieve all users with optional filtering based on the UserFilter model.
 
@@ -42,7 +43,7 @@ class UserRepository:
             user_filter (UserFilter): The filter criteria for retrieving users.
 
         Returns:
-            List[UserOutput]: A list of users that match the filtering criteria.
+            List[UserInDB]: A list of users that match the filtering criteria.
         """
         # Prepare the base query
         stmt = select(User).order_by(User.id)
@@ -72,18 +73,18 @@ class UserRepository:
         result = await self.session.execute(stmt)
         entities = result.scalars().all()
 
-        # Return the results as a list of UserOutput objects
-        return [UserOutput(**user.__dict__) for user in entities]
+        # Return the results as a list of UserInDB objects
+        return [UserInDB(**user.__dict__) for user in entities]
 
-    async def get_user(self, _id: UUID4) -> UserOutput:
+    async def get_user(self, _id: UUID4) -> UserInDB:
         """
         Retrieves a user by their ID.
 
         :param _id: The ID of the user to retrieve.
-        :return: The user as UserOutput.
+        :return: The user as UserInDB.
         """
         user = await self.session.get(User, _id)
-        return UserOutput(**user.__dict__)
+        return UserInDB(**user.__dict__)
 
     async def get_by_id(self, _id: UUID4) -> Optional[User]:
         """
@@ -114,28 +115,31 @@ class UserRepository:
         user = await self.session.scalar(select(User).where(User.email == email))
         return user is not None
 
-    async def get_by_email(self, email: str):
+    async def get_by_email(self, email: str) -> UserInDB:
         """
         Get user by email
         :param email: email string
-        :return: UserOutput object
+        :return: UserInDB object
         """
-        return await self.session.scalar(select(User).where(User.email == email))
-        # return UserOutput(**user.__dict__)
+        user = await self.session.scalar(select(User).where(User.email == email))
+        return UserInDB(**user.__dict__)
 
-    async def update(self, user: User, data: UserInput) -> UserOutput:
+    async def update(self, user: User, data: UserUpdate) -> UserInDB:
         """
         Updates the user with the given data.
 
         :param user: The user instance to update.
         :param data: The new data to update the user with.
-        :return: The updated user as UserOutput.
+        :return: The updated user as UserInDB.
         """
-        for key, value in data.model_dump(exclude_none=True).items():
+
+        for key, value in data.model_dump(exclude_none=True, exclude="password").items():
             setattr(user, key, value)
+        if data.password:
+            setattr(user, "hashed_password", hash_password(data.password))
         await self.session.commit()
         await self.session.refresh(user)
-        return UserOutput(**user.__dict__)
+        return UserInDB(**user.__dict__)
 
     async def delete(self, user: User) -> bool:
         """
