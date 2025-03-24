@@ -1,6 +1,5 @@
 import datetime
 from typing import TYPE_CHECKING
-from uuid import UUID as UUID_2
 
 import sqlalchemy
 from sqlalchemy import String, JSON, DateTime, func, ForeignKey, UUID
