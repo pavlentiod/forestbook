@@ -2,9 +2,8 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Security
 from fastapi.security import SecurityScopes
-from jwt import InvalidTokenError
 from pydantic import ValidationError
-from redis import Redis
+# from jwt import InvalidTokenError
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
@@ -41,7 +40,8 @@ async def get_current_user(
             raise credentials_exception
         token_scopes = payload.get("scopes", [])
         token_data = TokenData(scopes=token_scopes, username=username)
-    except (InvalidTokenError, ValidationError):
+    # except (InvalidTokenError, ValidationError):
+    except ValidationError:
         raise credentials_exception
     user: UserPreview = await auth_service.get_current_user(token)
     if user is None:

@@ -8,7 +8,9 @@ from starlette import status
 
 from src.config import settings
 from src.database.models.user.user import User
+from src.repositories.subscription.subscription_repository import SubscriptionRepository
 from src.schemas.auth.auth_schema import Token
+from src.schemas.subscription.subscrption_schema import UserSubscriptionOut
 from src.schemas.user.user_schema import UserInDB, UserPreview
 from src.services.auth.subservices.jwt_factory import JwtFactory
 from src.services.auth.utils import validate_password
@@ -87,13 +89,29 @@ class AuthService:
             )
         return UserInDB(**user.model_dump())
 
+
     async def login(self, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> Token:
         user: UserInDB = await self.authenticate_user(form_data.username, form_data.password)
         if not user:
             raise HTTPException(status_code=400, detail="Incorrect username or password")
-        access_token = self.jwt_factory.create_access_token(user, form_data.scopes)
-        refresh_token = self.jwt_factory.create_refresh_token(user, form_data.scopes)
-        return Token(access_token=access_token, refresh_token=refresh_token, scopes=form_data.scopes)
+
+        # Получаем подписочные scopes
+        sub_repo = SubscriptionRepository(self.session)
+        subscription: UserSubscriptionOut = await sub_repo.get_user_active_subscription(user.id)
+
+        # Объединяем scopes из формы и из подписки
+        subscription_scopes = subscription.plan.scopes if subscription else []
+        all_scopes = list(set(form_data.scopes + subscription_scopes))
+
+        # Генерируем токены
+        access_token = self.jwt_factory.create_access_token(user, all_scopes)
+        refresh_token = self.jwt_factory.create_refresh_token(user, all_scopes)
+
+        return Token(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            scopes=all_scopes
+        )
 
     async def refresh(self, token) -> Token:
         pass

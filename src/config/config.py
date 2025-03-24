@@ -10,7 +10,8 @@ from pydantic_settings import BaseSettings
 # load_dotenv()
 from src.config.modules.aws_config import AwsTree
 from src.config.modules.redis_config import RedisUser, RedisPost, RedisAws
-from src.config.modules.routers_config import UserRouter, PostRouter, AuthRouter, PostStorageRouter, SessionRouter
+from src.config.modules.routers_config import UserRouter, PostRouter, AuthRouter, PostStorageRouter, SessionRouter, \
+    SubscriptionRouter
 from src.config.modules.scopes_config import ScopesConfig
 
 BASE_DIR = Path(__file__).parent.parent
@@ -60,8 +61,7 @@ class ApiEndpoints(BaseSettings):
     auth: AuthRouter = AuthRouter()
     session: SessionRouter = SessionRouter()
     storage: PostStorageRouter = PostStorageRouter()
-
-
+    subscription: SubscriptionRouter = SubscriptionRouter()
 
 
 class AWS_Settings(BaseSettings):

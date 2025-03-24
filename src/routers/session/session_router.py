@@ -1,13 +1,17 @@
 from typing import List
 
 from fastapi import Security, Depends, APIRouter
+from starlette import status
 
 from src.config import settings
 from src.schemas.post.post_schema import PostPreview, PostFilter
+from src.schemas.subscription.subscrption_schema import UserSubscriptionOut
 from src.schemas.user.user_schema import UserPreview, UserUpdate
 from src.services.auth.dependencies import get_current_active_user
 from src.services.post.dependencies import get_post_service
 from src.services.post.post_service import PostService
+from src.services.subscription.dependencies import get_subscription_service
+from src.services.subscription.subscription_service import SubscriptionService
 from src.services.user.dependencies import get_user_service
 from src.services.user.user_service import UserService
 
@@ -65,3 +69,19 @@ async def user_posts(
 ):
     id_filter = PostFilter(id=user.id)
     return await post_service.get_all(id_filter)
+
+
+@router.get(
+    endpoints.get_user_subscription.path,
+    response_model=UserSubscriptionOut,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Security(get_current_active_user, scopes=endpoints.get_user_subscription.security)],
+)
+async def get_current_subscription(
+        current_user=Depends(get_current_active_user),
+        subscription_service: SubscriptionService = Depends(get_subscription_service),
+):
+    """
+    Получить текущую активную подписку пользователя.
+    """
+    return await subscription_service.get_user_active_subscription(current_user.id)

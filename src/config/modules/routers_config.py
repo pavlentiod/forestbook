@@ -56,3 +56,37 @@ class SessionRouter(BaseSettings):
         ]
     )
     stats: Route = Route(path="/stat", security=[])
+    # получить текущую активную подписку
+    get_user_subscription: Route = Route(
+        path="/subscription",
+        security=[scopes.user_profile_read.value]
+    )
+
+
+class SubscriptionRouter(BaseSettings):
+    # публичный просмотр активных планов
+    get_all_plans: Route = Route(path="/plans/", security=[])
+
+
+
+    # оформить подписку
+    subscribe: Route = Route(
+        path="/",
+        security=[scopes.user_profile_update.value]
+    )
+
+    # --- Админ-функции по планам ---
+    create_plan: Route = Route(
+        path="/plans/",
+        security=[scopes.user_manage.value]
+    )
+
+    update_plan: Route = Route(
+        path="/plans/{_id}",
+        security=[scopes.user_manage.value]
+    )
+
+    delete_plan: Route = Route(
+        path="/plans/{_id}",
+        security=[scopes.user_manage.value]
+    )
