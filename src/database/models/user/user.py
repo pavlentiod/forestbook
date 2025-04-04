@@ -9,6 +9,7 @@ from src.database.base import Base
 
 if TYPE_CHECKING:
     from src.database.models.post.post import Post
+    from src.database.models.subscription.user_subscription import UserSubscription
 
 
 class User(Base):
@@ -22,3 +23,4 @@ class User(Base):
 
     # Relations
     posts: Mapped[List["Post"]] = relationship(back_populates="runner", cascade="all, delete")
+    subscription: Mapped["UserSubscription"] = relationship(back_populates="user", cascade="all, delete")

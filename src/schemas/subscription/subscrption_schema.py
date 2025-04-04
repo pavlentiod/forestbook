@@ -1,4 +1,4 @@
-from pydantic import BaseModel, UUID4, Field
+from pydantic import BaseModel, UUID4, Field, ConfigDict
 from datetime import datetime
 from typing import Optional, List
 
@@ -16,6 +16,8 @@ class SubscriptionPlanBase(BaseModel):
     duration_days: int
     scopes: List[str]
     is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 

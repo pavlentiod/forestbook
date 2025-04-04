@@ -4,6 +4,7 @@ from uuid import UUID
 
 from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.database.models import SubscriptionPlan
 from src.database.models.subscription.user_subscription import UserSubscription
@@ -58,13 +59,13 @@ class SubscriptionRepository:
         return [SubscriptionPlanBase(**p.__dict__) for p in plans]
 
     async def get_plan_by_id(self, plan_id: UUID) -> Optional[SubscriptionPlan]:
-        """
-        Получение плана по ID.
-
-        :param plan_id: UUID плана
-        :return: План или None
-        """
-        return await self.session.get(SubscriptionPlan, plan_id)
+        stmt = (
+            select(SubscriptionPlan)
+            .where(SubscriptionPlan.id == plan_id)
+            .options(selectinload(SubscriptionPlan.subscriptions))  # загрузи связанные подписки
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
 
     async def update_plan(self, plan: SubscriptionPlan, data: SubscriptionPlanUpdate) -> SubscriptionPlanBase:
         """
@@ -103,23 +104,32 @@ class SubscriptionRepository:
         :return: Подписка или None
         """
         now = datetime.now(UTC)
-        query = select(UserSubscription).join(SubscriptionPlan).where(
-            and_(
-                UserSubscription.user_id == user_id,
-                UserSubscription.is_active.is_(True),
-                UserSubscription.start_date <= now,
-                UserSubscription.end_date >= now,
+
+        query = (
+            select(UserSubscription)
+            .options(selectinload(UserSubscription.plan))  # ← ключевая строка
+            .where(
+                and_(
+                    UserSubscription.user_id == user_id,
+                    UserSubscription.is_active.is_(True),
+                    UserSubscription.start_date <= now,
+                    UserSubscription.end_date >= now,
+                )
             )
-        ).limit(1)
+            .limit(1)
+        )
+
         result = await self.session.execute(query)
         sub = result.scalars().first()
+
         if sub:
             return UserSubscriptionOut(
-                plan=SubscriptionPlanBase(**sub.plan.__dict__),
+                plan=SubscriptionPlanBase.model_validate(sub.plan),  # ← безопасная конвертация
                 start_date=sub.start_date,
                 end_date=sub.end_date,
                 is_active=sub.is_active,
             )
+
         return None
 
     async def create_subscription(

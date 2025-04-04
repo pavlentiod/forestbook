@@ -18,7 +18,7 @@ class UserSubscription(Base):
     user: Mapped["User"] = relationship(back_populates="subscription")
 
     plan_id: Mapped[UUID] = mapped_column(ForeignKey("subscription_plans.id"))
-    plan: Mapped["SubscriptionPlan"] = relationship(back_populates="subscription")
+    plan: Mapped["SubscriptionPlan"] = relationship(back_populates="subscriptions")
 
     start_date: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     end_date: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=False)

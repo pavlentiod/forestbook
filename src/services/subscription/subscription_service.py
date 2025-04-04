@@ -61,7 +61,7 @@ class SubscriptionService:
         :raises HTTPException: Если план не найден или возникла ошибка
         """
         plan = await self.repository.get_plan_by_id(data.plan_id)
-        plan = SubscriptionPlanBase(**plan.__dict__)
+        plan = SubscriptionPlanBase.model_validate(plan)
         if not plan:
             raise HTTPException(status_code=404, detail="Тарифный план не найден")
 
