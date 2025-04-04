@@ -2,6 +2,7 @@ from datetime import timedelta, datetime
 
 import jwt
 from fastapi import HTTPException
+from jwt import ExpiredSignatureError, InvalidTokenError
 from starlette import status
 
 from src.config import settings
@@ -136,10 +137,15 @@ class JwtFactory:
         )
         return encoded
 
-    def decode_jwt(self,
-                   token: str | bytes,
-                   public_key: str = settings.auth_jwt.public_key_path.read_text(),
-                   algorithm: str = settings.auth_jwt.algorithm) -> dict:
+    from jwt import ExpiredSignatureError, InvalidTokenError
+    from fastapi import HTTPException, status
+
+    def decode_jwt(
+            self,
+            token: str | bytes,
+            public_key: str = settings.auth_jwt.public_key_path.read_text(),
+            algorithm: str = settings.auth_jwt.algorithm,
+    ) -> dict:
         """
         Decode a JSON Web Token (JWT) and verify its signature.
 
@@ -151,15 +157,26 @@ class JwtFactory:
         Returns:
             dict: The decoded JWT payload.
 
-        Example:
-            >>> decoded = self.decode_jwt(token)
+        Raises:
+            HTTPException: If the token is expired or invalid.
         """
-        decoded = jwt.decode(
-            token,
-            public_key,
-            algorithms=[algorithm],
-        )
-        return decoded
+        try:
+            decoded = jwt.decode(
+                token,
+                public_key,
+                algorithms=[algorithm],
+            )
+            return decoded
+        except ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истёк. Пройдите повторную авторизацию.",
+            )
+        except InvalidTokenError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Недействительный токен авторизации.",
+            )
 
     def validate_token_type(self, payload: dict, type: str):
         token_type = payload.get('type')
