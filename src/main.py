@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 
+from src.config import settings
 from src.routers import router
 
 app = FastAPI(
-    title="Event Data API",
-    description="API for managing and retrieving event data",
+    title="ForestBook API",
+    description="API for managing ForestBook App",
     version="1.0.0",
     docs_url="/docs",  # URL for the Swagger UI documentation
     redoc_url="/redoc",  # URL for ReDoc documentation
@@ -26,4 +27,4 @@ async def read_root():
 # Run the app using Uvicorn if the script is executed directly
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", port=8005, reload=False)
+    uvicorn.run("main:app", port=settings.services.forestbook.port, reload=False)

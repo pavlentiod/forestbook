@@ -15,7 +15,7 @@ class RedisConfig:
 
     def many(self, filters: BaseModel = None):
         # TODO: Связанные ключи в кэше
-        key = f"{self.FORESTBOOK_PREFIX}{self.prefix}s:all"
+        key = f"{self.FORESTBOOK_PREFIX}:{self.prefix}s:all"
         if not filters:
             return key
         return f"{key}:{urlencode(filters.model_dump(exclude_none=True))}"
