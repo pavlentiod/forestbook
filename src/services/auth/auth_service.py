@@ -10,7 +10,7 @@ from src.config import settings
 from src.database.models.user.user import User
 from src.repositories.subscription.subscription_repository import SubscriptionRepository
 from src.schemas.auth.auth_schema import Token
-from src.schemas.subscription.subscrption_schema import UserSubscriptionOut
+from src.schemas.subscription.subscrption_schema import UserSubscriptionOutput
 from src.schemas.user.user_schema import UserInDB, UserPreview
 from src.services.auth.subservices.jwt_factory import JwtFactory
 from src.services.auth.utils import validate_password
@@ -97,7 +97,7 @@ class AuthService:
 
         # Получаем подписочные scopes
         sub_repo = SubscriptionRepository(self.session)
-        subscription: UserSubscriptionOut = await sub_repo.get_user_active_subscription(user.id)
+        subscription: UserSubscriptionOutput = await sub_repo.get_user_active_subscription(user.id)
 
         # Объединяем scopes из формы и из подписки
         subscription_scopes = subscription.plan.scopes if subscription else []
