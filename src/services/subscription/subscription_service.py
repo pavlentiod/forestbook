@@ -6,11 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.repositories.subscription.subscription_repository import SubscriptionRepository
 from src.schemas.subscription.subscrption_schema import (
-    SubscriptionPlanCreate,
+    SubscriptionPlanInput,
     SubscriptionPlanUpdate,
-    SubscriptionPlanBase,
+    SubscriptionPlanOutput,
     SubscribeRequest,
-    UserSubscriptionOut
+    UserSubscriptionOutput
 )
 
 
@@ -30,7 +30,7 @@ class SubscriptionService:
 
     # --- 🔓 Публичные методы ---
 
-    async def get_all_plans(self) -> List[SubscriptionPlanBase]:
+    async def get_all_plans(self) -> List[SubscriptionPlanOutput]:
         """
         Получить список всех активных тарифных планов.
 
@@ -38,7 +38,7 @@ class SubscriptionService:
         """
         return await self.repository.get_all_plans()
 
-    async def get_user_active_subscription(self, user_id: UUID) -> UserSubscriptionOut:
+    async def get_user_active_subscription(self, user_id: UUID) -> UserSubscriptionOutput:
         """
         Получить текущую активную подписку пользователя.
 
@@ -51,7 +51,7 @@ class SubscriptionService:
             raise HTTPException(status_code=404, detail="Активная подписка не найдена")
         return sub
 
-    async def subscribe(self, user_id: UUID, data: SubscribeRequest) -> UserSubscriptionOut:
+    async def subscribe(self, user_id: UUID, data: SubscribeRequest) -> UserSubscriptionOutput:
         """
         Подписать пользователя на тарифный план.
 
@@ -61,7 +61,7 @@ class SubscriptionService:
         :raises HTTPException: Если план не найден или возникла ошибка
         """
         plan = await self.repository.get_plan_by_id(data.plan_id)
-        plan = SubscriptionPlanBase.model_validate(plan)
+        plan = SubscriptionPlanOutput.model_validate(plan)
         if not plan:
             raise HTTPException(status_code=404, detail="Тарифный план не найден")
 
@@ -73,7 +73,7 @@ class SubscriptionService:
 
     # --- 🔐 Админ-функции для управления планами ---
 
-    async def create_plan(self, data: SubscriptionPlanCreate) -> SubscriptionPlanBase:
+    async def create_plan(self, data: SubscriptionPlanInput) -> SubscriptionPlanOutput:
         """
         Создать новый тарифный план.
 
@@ -82,7 +82,7 @@ class SubscriptionService:
         """
         return await self.repository.create_plan(data)
 
-    async def update_plan(self, plan_id: UUID, data: SubscriptionPlanUpdate) -> SubscriptionPlanBase:
+    async def update_plan(self, plan_id: UUID, data: SubscriptionPlanUpdate) -> SubscriptionPlanOutput:
         """
         Обновить существующий тарифный план.
 
