@@ -81,12 +81,10 @@ class UserService:
         redis_key = self.redis_keys.key_by_user_id(_id)
         if (cached_user := self.redis_client.get(redis_key)) is not None:
             return cached_user
-
-        user = await self.repository.get_user(_id)
-        if not user:
+        if not await self.repository.user_exists_by_id(_id):
             raise HTTPException(status_code=404, detail="User not found")
-
-        self.redis_client.set(redis_key, user)  # Cache the user data
+        user = await self.repository.get_user(_id)
+        self.redis_client.set(redis_key, user)
         return user
 
     async def get_by_email(self, email: str) -> UserInDB:
