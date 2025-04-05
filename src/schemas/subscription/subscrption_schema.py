@@ -5,7 +5,7 @@ from typing import Optional, List
 
 # --- 📦 Тарифные планы --- #
 
-class SubscriptionPlanBase(BaseModel):
+class SubscriptionPlanOutput(BaseModel):
     """
     Базовая схема тарифного плана (для вывода).
     """
@@ -21,7 +21,7 @@ class SubscriptionPlanBase(BaseModel):
 
 
 
-class SubscriptionPlanCreate(BaseModel):
+class SubscriptionPlanInput(BaseModel):
     """
     Схема для создания нового тарифного плана.
     """
@@ -54,11 +54,11 @@ class SubscribeRequest(BaseModel):
     external_id: Optional[str] = None  # Например, Stripe/RevenueCat ID
 
 
-class UserSubscriptionOut(BaseModel):
+class UserSubscriptionOutput(BaseModel):
     """
     Схема ответа с текущей активной подпиской пользователя.
     """
-    plan: SubscriptionPlanBase
+    plan: SubscriptionPlanOutput
     start_date: datetime
     end_date: datetime
     is_active: bool
