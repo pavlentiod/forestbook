@@ -5,7 +5,7 @@ from starlette import status
 
 from src.config import settings
 from src.schemas.post.post_schema import PostPreview, PostFilter
-from src.schemas.subscription.subscrption_schema import UserSubscriptionOut
+from src.schemas.subscription.subscrption_schema import UserSubscriptionOutput
 from src.schemas.user.user_schema import UserPreview, UserUpdate
 from src.services.auth.dependencies import get_current_active_user
 from src.services.post.dependencies import get_post_service
@@ -73,7 +73,7 @@ async def user_posts(
 
 @router.get(
     endpoints.get_user_subscription.path,
-    response_model=UserSubscriptionOut,
+    response_model=UserSubscriptionOutput,
     status_code=status.HTTP_200_OK,
     dependencies=[Security(get_current_active_user, scopes=endpoints.get_user_subscription.security)],
 )

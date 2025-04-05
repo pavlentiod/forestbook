@@ -5,11 +5,11 @@ from pydantic import UUID4
 
 from src.config import settings
 from src.schemas.subscription.subscrption_schema import (
-    SubscriptionPlanBase,
-    SubscriptionPlanCreate,
+    SubscriptionPlanOutput,
+    SubscriptionPlanInput,
     SubscriptionPlanUpdate,
     SubscribeRequest,
-    UserSubscriptionOut,
+    UserSubscriptionOutput,
 )
 from src.services.auth.dependencies import get_current_active_user
 from src.services.subscription.dependencies import get_subscription_service
@@ -21,7 +21,7 @@ endpoints = settings.api.subscription
 
 @router.get(
     endpoints.get_all_plans.path,
-    response_model=List[SubscriptionPlanBase],
+    response_model=List[SubscriptionPlanOutput],
     status_code=status.HTTP_200_OK,
     dependencies=[Security(get_current_active_user, scopes=endpoints.get_all_plans.security)],
 )
@@ -37,7 +37,7 @@ async def get_all_plans(
 
 @router.post(
     endpoints.subscribe.path,
-    response_model=UserSubscriptionOut,
+    response_model=UserSubscriptionOutput,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Security(get_current_active_user, scopes=endpoints.subscribe.security)],
 )
@@ -54,12 +54,12 @@ async def subscribe(
 
 @router.post(
     endpoints.create_plan.path,
-    response_model=SubscriptionPlanBase,
+    response_model=SubscriptionPlanOutput,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Security(get_current_active_user, scopes=endpoints.create_plan.security)],
 )
 async def create_plan(
-        data: SubscriptionPlanCreate,
+        data: SubscriptionPlanInput,
         subscription_service: SubscriptionService = Depends(get_subscription_service),
 ):
     """
@@ -70,7 +70,7 @@ async def create_plan(
 
 @router.put(
     endpoints.update_plan.path,
-    response_model=SubscriptionPlanBase,
+    response_model=SubscriptionPlanOutput,
     status_code=status.HTTP_200_OK,
     dependencies=[Security(get_current_active_user, scopes=endpoints.update_plan.security)],
 )
