@@ -1,8 +1,7 @@
-import asyncio
-from typing import Optional, List
-from uuid import UUID
 import httpx
 import logging
+from typing import Optional, List
+from uuid import UUID
 
 from forestlab_schemas.event import EventEndpoint, EventUpdate, EventResponse
 from forestlab_schemas.track import TrackResponse
@@ -12,23 +11,18 @@ from forestlab_schemas.group import GroupOutput
 from forestlab_schemas.leg import LegOutput
 from forestlab_schemas.leaderboard import LeaderBoard
 
-from src.config import settings
-
 logger = logging.getLogger(__name__)
 
 
 class ForestLabClient:
     """
-    Асинхронный клиент для взаимодействия с ForestLab API.
+    Асинхронный клиент для взаимодействия с ForestLab API с поддержкой передачи JWT токена.
     """
 
-    def __init__(self):
-        self.base_url = "http://127.0.0.1:8020"
-        # self.base_url = settings.services.forestlab.base_url
+    def __init__(self, base_url: str, token: Optional[str] = None):
+        self.base_url = base_url.rstrip("/")
+        self.token = token
         self.timeout = 5
-        self.headers = {
-            "X-Internal-Token": ""  # при необходимости убрать или заменить
-        }
         self.client: Optional[httpx.AsyncClient] = None
 
     async def __aenter__(self):
@@ -38,23 +32,26 @@ class ForestLabClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.client.aclose()
 
+    def _auth_headers(self) -> dict:
+        if self.token:
+            return {"Authorization": f"Bearer {self.token}"}
+        return {}
+
     async def _get(self, path: str) -> dict:
         try:
-            response = await self.client.get(path)
+            response = await self.client.get(path, headers=self._auth_headers())
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
             logger.error(f"GET {path} failed: {e.response.status_code} {e.response.text}")
-            print(f"Ошибка {e.response.status_code}: {e.response.text}")
             raise
-
         except Exception as e:
             logger.exception(f"Unexpected error during GET {path}")
             raise
 
     async def _post(self, path: str, data: dict) -> dict:
         try:
-            response = await self.client.post(path, json=data)
+            response = await self.client.post(path, json=data, headers=self._auth_headers())
             response.raise_for_status()
             return response.json()
         except httpx.HTTPStatusError as e:
@@ -62,12 +59,12 @@ class ForestLabClient:
             raise
 
     async def _put(self, path: str, data: dict) -> dict:
-        response = await self.client.put(path, json=data)
+        response = await self.client.put(path, json=data, headers=self._auth_headers())
         response.raise_for_status()
         return response.json()
 
     async def _delete(self, path: str) -> None:
-        response = await self.client.delete(path)
+        response = await self.client.delete(path, headers=self._auth_headers())
         response.raise_for_status()
 
     # ---------- PUBLIC METHODS ----------
@@ -125,7 +122,8 @@ class ForestLabClient:
             files = {"file": ("track.gpx", f, "application/gpx+xml")}
             response = await self.client.post(
                 f"/events/{event_id}/runners/{runner_id}/track",
-                files=files
+                files=files,
+                headers=self._auth_headers()
             )
             response.raise_for_status()
             return TrackResponse(**response.json())
@@ -133,5 +131,3 @@ class ForestLabClient:
     async def get_leaderboard(self, course_id: UUID) -> LeaderBoard:
         data = await self._get(f"/leaderboard/course/{course_id}")
         return LeaderBoard(**data)
-
-

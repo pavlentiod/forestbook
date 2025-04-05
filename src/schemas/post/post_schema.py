@@ -2,10 +2,13 @@ from datetime import datetime
 from typing import List, Optional, Any
 from uuid import UUID
 
+from forestlab_schemas.event import EventResponse
+from forestlab_schemas.runner import RunnerStat, RunnerLegStat, RunnerLegGEOStat, RunnerOutput
 from pydantic import BaseModel, Field, Json
 
 # Schema for input data (creating a post)
 from src.config import settings
+from src.schemas.user.user_schema import UserPreview
 
 
 class PostInput(BaseModel):
@@ -94,3 +97,34 @@ class PostFilter(BaseModel):
     created_at_to: Optional[datetime] = None
     updated_at_from: Optional[datetime] = None
     updated_at_to: Optional[datetime] = None
+
+
+class PostStats(BaseModel):
+    """
+    Расширенная статистика по посту.
+    Включает как данные от ForestLab (например, сплиты, места),
+    так и будущую аналитику ForestBook.
+    """
+
+    # runner_stat: Optional[RunnerStat] = None  # Данные по результату спортсмена
+    # legs: Optional[List[LegOutput]] = None    # Общая информация по перегонкам
+
+    # Пример будущих метрик, которые может считать ForestBook:
+    speed_index: Optional[float] = None       # Индекс скорости по отношению к среднему
+    mistake_score: Optional[int] = None       # Оценка ошибок на дистанции
+    consistency_rating: Optional[float] = None  # Стабильность времени прохождения
+
+    class Config:
+        from_attributes = True
+
+class PostExtendedResponse(BaseModel):
+    id: UUID
+    title: str
+    tags: list[str]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    status: str
+    body: dict
+    stats: RunnerStat
+    info: RunnerOutput
+    media: str = ""

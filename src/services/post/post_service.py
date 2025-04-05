@@ -5,9 +5,11 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.clients.forestlab_client import ForestLabClient
 from src.config import settings
 from src.repositories.post.post_repository import PostRepository
-from src.schemas.post.post_schema import PostInput, PostInDB, PostEndpoint, PostFilter, PostUpdate
+from src.schemas.post.post_schema import PostInput, PostInDB, PostEndpoint, PostFilter, PostUpdate, PostExtendedResponse
+from src.services.post.aggregator import PostAggregator
 from src.services.redis_storage.redis_service import RedisStorage
 
 
@@ -17,14 +19,14 @@ class PostService:
     updates, and deletion, with Redis caching support.
     """
 
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession, forestlab: ForestLabClient):
         """
         Initializes the PostService with a database session and Redis client.
 
         :param session: Asynchronous database session.
-        :param redis_client: Redis storage instance for caching post data.
         """
         self.repository = PostRepository(session)
+        self.forestlab = forestlab
         self.redis_client = RedisStorage()
         self.redis_keys = settings.redis.post
 
@@ -80,6 +82,21 @@ class PostService:
 
         self.redis_client.set(redis_key, post)
         return post
+
+    async def get_extended_post(self, _id: UUID) -> PostExtendedResponse:
+        """
+        Получает расширенную информацию о посте, включая результаты, сплиты и другую статистику.
+
+        :param _id: UUID поста
+        :return: PostExtendedResponse с агрегированными данными
+        :raises HTTPException: если пост не найден
+        """
+        post = await self.repository.get_post(_id)
+        if not post:
+            raise HTTPException(status_code=404, detail="Post not found")
+
+        aggregator = PostAggregator(self.forestlab)
+        return await aggregator.aggregate(post)
 
     async def update(self, _id: UUID, data: PostUpdate) -> PostInDB:
         """
