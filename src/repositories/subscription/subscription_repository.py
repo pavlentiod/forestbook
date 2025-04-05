@@ -9,10 +9,10 @@ from sqlalchemy.orm import selectinload
 from src.database.models import SubscriptionPlan
 from src.database.models.subscription.user_subscription import UserSubscription
 from src.schemas.subscription.subscrption_schema import (
-    SubscriptionPlanBase,
-    SubscriptionPlanCreate,
+    SubscriptionPlanOutput,
+    SubscriptionPlanInput,
     SubscriptionPlanUpdate,
-    UserSubscriptionOut,
+    UserSubscriptionOutput,
     SubscribeRequest
 )
 
@@ -34,7 +34,7 @@ class SubscriptionRepository:
     # 📦 Методы для SubscriptionPlan
     # -----------------------------
 
-    async def create_plan(self, data: SubscriptionPlanCreate) -> SubscriptionPlanBase:
+    async def create_plan(self, data: SubscriptionPlanInput) -> SubscriptionPlanOutput:
         """
         Создание нового тарифного плана.
 
@@ -45,9 +45,9 @@ class SubscriptionRepository:
         self.session.add(plan)
         await self.session.commit()
         await self.session.refresh(plan)
-        return SubscriptionPlanBase(**plan.__dict__)
+        return SubscriptionPlanOutput(**plan.__dict__)
 
-    async def get_all_plans(self) -> List[SubscriptionPlanBase]:
+    async def get_all_plans(self) -> List[SubscriptionPlanOutput]:
         """
         Получение всех активных тарифных планов.
 
@@ -56,7 +56,7 @@ class SubscriptionRepository:
         query = select(SubscriptionPlan).where(SubscriptionPlan.is_active.is_(True))
         result = await self.session.execute(query)
         plans = result.scalars().all()
-        return [SubscriptionPlanBase(**p.__dict__) for p in plans]
+        return [SubscriptionPlanOutput(**p.__dict__) for p in plans]
 
     async def get_plan_by_id(self, plan_id: UUID) -> Optional[SubscriptionPlan]:
         stmt = (
@@ -67,7 +67,7 @@ class SubscriptionRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def update_plan(self, plan: SubscriptionPlan, data: SubscriptionPlanUpdate) -> SubscriptionPlanBase:
+    async def update_plan(self, plan: SubscriptionPlan, data: SubscriptionPlanUpdate) -> SubscriptionPlanOutput:
         """
         Обновление существующего плана.
 
@@ -79,7 +79,7 @@ class SubscriptionRepository:
             setattr(plan, key, value)
         await self.session.commit()
         await self.session.refresh(plan)
-        return SubscriptionPlanBase(**plan.__dict__)
+        return SubscriptionPlanOutput(**plan.__dict__)
 
     async def delete_plan(self, plan: SubscriptionPlan) -> bool:
         """
@@ -96,7 +96,7 @@ class SubscriptionRepository:
     # 👤 Методы для подписок пользователя
     # --------------------------------
 
-    async def get_user_active_subscription(self, user_id: UUID) -> Optional[UserSubscriptionOut]:
+    async def get_user_active_subscription(self, user_id: UUID) -> Optional[UserSubscriptionOutput]:
         """
         Получение текущей активной подписки пользователя.
 
@@ -123,8 +123,8 @@ class SubscriptionRepository:
         sub = result.scalars().first()
 
         if sub:
-            return UserSubscriptionOut(
-                plan=SubscriptionPlanBase.model_validate(sub.plan),  # ← безопасная конвертация
+            return UserSubscriptionOutput(
+                plan=SubscriptionPlanOutput.model_validate(sub.plan),  # ← безопасная конвертация
                 start_date=sub.start_date,
                 end_date=sub.end_date,
                 is_active=sub.is_active,
@@ -133,7 +133,7 @@ class SubscriptionRepository:
         return None
 
     async def create_subscription(
-            self, user_id: UUID, data: SubscribeRequest, plan: SubscriptionPlanBase
+            self, user_id: UUID, data: SubscribeRequest, plan: SubscriptionPlanOutput
     ) -> UserSubscription:
         """
         Создание новой подписки для пользователя.
