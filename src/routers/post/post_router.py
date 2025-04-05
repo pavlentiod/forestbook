@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, Security, status
 from pydantic import UUID4
 
 from src.config import settings
-from src.schemas.post.post_schema import PostEndpoint, PostPreview, PostFilter, PostUpdate
+from src.schemas.post.post_schema import PostEndpoint, PostPreview, PostFilter, PostUpdate, PostContent, \
+    PostExtendedResponse
 from src.services.auth.dependencies import get_current_active_user
 from src.services.post.dependencies import get_post_service
 from src.services.post.post_service import PostService
@@ -60,12 +61,12 @@ async def get_all(
 
 @router.get(
     endpoints.read.path,
-    response_model=PostPreview,
+    response_model=PostExtendedResponse,
     dependencies=[Security(get_current_active_user, scopes=endpoints.read.security)]
 )
 async def read(
         _id: UUID4,
-        post_service: PostService = Depends(get_post_service),
+        post_service: PostService = Depends(get_post_service)
 ):
     """
     Retrieve a specific post by its ID.
@@ -77,7 +78,7 @@ async def read(
     Returns:
         PostPreview: The post object corresponding to the given ID.
     """
-    return await post_service.get_post(_id)
+    return await post_service.get_extended_post(_id)
 
 
 @router.put(
