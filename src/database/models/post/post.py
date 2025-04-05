@@ -25,6 +25,7 @@ class Post(Base):
     # ForestLab relations
     event_id: Mapped[UUID] = mapped_column(UUID, nullable=False)
     track_id: Mapped[UUID] = mapped_column(UUID, nullable=True)
+    runner_id: Mapped[UUID] = mapped_column(UUID, nullable=False)
 
     # Additional fields
     status: Mapped[str] = mapped_column(String(20), nullable=False,

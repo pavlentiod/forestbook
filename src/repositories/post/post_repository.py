@@ -50,8 +50,6 @@ class PostRepository:
             conditions.append(Post.user_id == filters.user_id)
         if filters.event_id:
             conditions.append(Post.event_id == filters.event_id)
-        if filters.track_id:
-            conditions.append(Post.track_id == filters.track_id)
         if filters.status:
             conditions.append(Post.status == filters.status)
         if filters.tags:

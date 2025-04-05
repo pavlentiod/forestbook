@@ -13,6 +13,7 @@ class PostInput(BaseModel):
     body: dict = Field(default={})
     user_id: UUID
     event_id: UUID
+    runner_id: UUID
     track_id: Optional[UUID] = None
     status: str = Field(default='DRAFT')
     tags: Optional[List[str]] = None
@@ -23,6 +24,7 @@ class PostEndpoint(BaseModel):
     body: dict = Field(default={})
     user_id: UUID
     event_id: UUID
+    runner_id: UUID
     track_id: Optional[UUID] = None
     status: str = Field(default='DRAFT')
     tags: Optional[List[str]] = None
@@ -33,6 +35,7 @@ class PostPreview(BaseModel):
     title: str
     user_id: UUID
     event_id: UUID
+    runner_id: UUID
     track_id: Optional[UUID]
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -43,6 +46,7 @@ class PostPreview(BaseModel):
 class PostContent(BaseModel):
     title: str
     user_id: UUID
+    runner_id: UUID
     event_id: UUID
     track_id: Optional[UUID]
     created_at: datetime
@@ -53,13 +57,13 @@ class PostContent(BaseModel):
     body: Json[Any] = Field(Json[Any], description="Json content with user comments")
 
 
-
 class PostInDB(BaseModel):
     id: UUID
     title: str
     body: dict
     user_id: UUID
     event_id: UUID
+    runner_id: UUID
     track_id: Optional[UUID]
     created_at: datetime
     updated_at: Optional[datetime] = None
@@ -76,6 +80,7 @@ class PostUpdate(BaseModel):
     body: Optional[dict] = Field(None)
     event_id: Optional[UUID] = None
     track_id: Optional[UUID] = None
+    runner_id: Optional[UUID] = None
     status: Optional[str] = None
     tags: Optional[List[str]] = None
 
@@ -83,7 +88,6 @@ class PostUpdate(BaseModel):
 class PostFilter(BaseModel):
     user_id: Optional[UUID] = None
     event_id: Optional[UUID] = None
-    track_id: Optional[UUID] = None
     status: Optional[str] = None
     tags: Optional[List[str]] = None
     created_at_from: Optional[datetime] = None
