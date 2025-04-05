@@ -106,3 +106,11 @@ class SubscriptionRouter(PrefixedRouter):
         path="/plans/{_id}",
         security=[scopes.user_manage.value]
     )
+
+class UserStatsRouter(PrefixedRouter):
+    prefix: str = "/users/{user_id}/stats"
+
+    get_all: Route = Route(path="/", security=[scopes.user_profile_read.value])
+    get_by_level: Route = Route(path="/{level}", security=[scopes.user_profile_read.value])
+    update_or_create: Route = Route(path="/{level}", security=[scopes.user_profile_update.value])
+    delete: Route = Route(path="/{level}", security=[scopes.user_profile_update.value])

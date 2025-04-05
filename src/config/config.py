@@ -6,9 +6,9 @@ from pydantic_settings import BaseSettings
 
 from forest_config.loader import load_global_config, load_services_config, ServiceConfig
 from src.config.modules.aws_config import AwsTree
-from src.config.modules.redis_config import RedisUser, RedisPost, RedisAws
+from src.config.modules.redis_config import RedisUser, RedisPost, RedisAws, RedisUserStats
 from src.config.modules.routers_config import (
-    UserRouter, PostRouter, AuthRouter, PostStorageRouter, SessionRouter, SubscriptionRouter
+    UserRouter, PostRouter, AuthRouter, PostStorageRouter, SessionRouter, SubscriptionRouter, UserStatsRouter
 )
 from src.config.modules.scopes_config import ScopesConfig
 
@@ -34,6 +34,7 @@ class RedisSettings(BaseSettings):
     port: int = global_config.redis.port
     host: str = global_config.redis.host
     user: RedisUser = RedisUser()
+    user_stats: RedisUserStats = RedisUserStats()
     post: RedisPost = RedisPost()
     storage: RedisAws = RedisAws()
 
@@ -56,6 +57,8 @@ class S3Settings(BaseSettings):
     app_path: str = global_config.s3.app_path
     users_folder: str = global_config.s3.users_path
     posts_folder: str = global_config.s3.posts_path
+    access_key: str = global_config.s3.access_key
+    secret_key: str = global_config.s3.secret_key
 
     @property
     def tree(self):
@@ -64,6 +67,7 @@ class S3Settings(BaseSettings):
 
 class ApiEndpoints(BaseSettings):
     user: UserRouter = UserRouter()
+    user_stats: UserStatsRouter = UserStatsRouter()
     post: PostRouter = PostRouter()
     auth: AuthRouter = AuthRouter()
     session: SessionRouter = SessionRouter()

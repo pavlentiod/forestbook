@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.database import Base
 if TYPE_CHECKING:
-    from src.database.models.subscription.user_subscription import UserSubscription
+    from src.database.models.user.user_subscription import UserSubscription
 
 
 class SubscriptionPlan(Base):
